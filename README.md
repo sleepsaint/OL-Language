@@ -13,10 +13,20 @@ OL is designed to get value from a tree. It regards a tree as an object and use 
 ##Syntax
 
 + *literal* -> **number**|**string**
-+ *value* -> *literal*|*path*|*root*|*negative*
-+ *path* -> *root*{.*key*}
-+ *root* -> ^|@|~|*function*
++ *value* -> *literal*|*path*|*function*|*negative*
++ *path* -> (^|@|~){.*key*}
 + *key* -> **string**|*function*|*fragment*
 + *fragment* -> "{"*path*"}"
 + *function* -> "("*value*{,*value*}")"
+
+##Example
+
+###Data
+	{
+		person: {
+			"0001": {"name": "Peter", "age": 30, "spouse": "0002"},
+			"0002": {"name": "Jane", "age": 28, "spouse": "0001"},
+			"0003": {"name": "Tom", "age": 28}
+		}
+	}
 
