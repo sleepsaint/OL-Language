@@ -6,17 +6,17 @@ OL is designed to get value from a tree. It regards a tree as an object and use 
 
 ##Lexical
 
-+**delimiter** = ~|!|@|^|(|)|{|}|,|.
-+**number** = #[-][0~9]*
-+**string** = [!**delimiter**]*
++ **delimiter** = ~|!|@|^|(|)|{|}|,|.
++ **number** = #[-][0~9]*
++ **string** = [!**delimiter**]*
 
 ##Syntax
 
-+*literal* -> **number**|**string**
-+*value* -> *literal*|*path*|*root*|*negative*
-+*path* -> *root*{.*key*}
-+*root* -> ^|@|~|*function*
-+*key* -> **string**|*function*|*fragment*
-+*fragment* -> "{"*path*"}"
-+*function* -> "("*value*{,*value*}")"
++ *literal* -> **number**|**string**
++ *value* -> *literal*|*path*|*root*|*negative*
++ *path* -> *root*{.*key*}
++ *root* -> ^|@|~|*function*
++ *key* -> **string**|*function*|*fragment*
++ *fragment* -> "{"*path*"}"
++ *function* -> "("*value*{,*value*}")"
 
