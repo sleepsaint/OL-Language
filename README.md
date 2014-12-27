@@ -6,27 +6,19 @@ OL is designed to get value from a tree. It regards a tree as an object and use 
 
 ##Lexical
 
-+ **delimiter** = ~|!|@|^|(|)|{|}|,|.
-+ **number** = #[-][0~9]*
-+ **string** = [!**delimiter**]*
++ _delimiter_ = ~|!|@|^|(|)|{|}|,|.
++ _string_ = [^#_delimiter_]+
++ _number_ = #_string_(._string_)?
 
+___NOTE___:
+
++ _number_ is only a string start by "#" and can contain "."
++ SPACE before a string is ignored, but in a string is not.
 ##Syntax
 
-+ *literal* -> **number**|**string**
-+ *value* -> *literal*|*path*|*function*|*negative*
-+ *path* -> (^|@|~){.*key*}
-+ *key* -> **string**|*function*|*fragment*
-+ *fragment* -> "{"*path*"}"
-+ *function* -> "("*value*{,*value*}")"
-
-##Example
-
-###Data
-	{
-		person: {
-			"0001": {"name": "Peter", "age": 30, "spouse": "0002"},
-			"0002": {"name": "Jane", "age": 28, "spouse": "0001"},
-			"0003": {"name": "Tom", "age": 28}
-		}
-	}
-
++ _value_ → _literal_|_path_|_function_|_negative_
++ _literal_ → ___number___|___string___
++ _path_ → (^|@|~)[._key_]
++ _key_ → _string_|_function_|_fragment_
++ _fragment_ → __{__*path*__}__
++ _function_ → __(__*value*[,*value*]__)__
