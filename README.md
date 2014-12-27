@@ -14,10 +14,11 @@ ___NOTE___:
 
 + _number_ is only a string start by "#" and can contain "."
 + SPACE before a string is ignored, but in a string is not.
+
 ##Syntax
 
-+ _value_ → _literal_|_path_|_function_|_negative_
-+ _literal_ → ___number___|___string___
+* _value_ → _literal_|_path_|_function_|_negative_
+* _literal_ → ___number___|___string___
 + _path_ → (^|@|~)[._key_]
 + _key_ → _string_|_function_|_fragment_
 + _fragment_ → __{__*path*__}__
