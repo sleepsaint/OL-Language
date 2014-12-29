@@ -29,6 +29,6 @@
 
 # Xcode User data
 xcuserdata/
-project.xcworkspace/xcshareddata/
-project.xcworkspace/xcuserdata/
+xcshareddata/
+
 

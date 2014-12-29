@@ -5,22 +5,26 @@
 	<title>OL test</title>
 	<script src="ol.js"></script>
 	<script>
-	function test_parse(s) {
-		var a = OL.parse(s);
-		if (a) console.log(a.debug());
-	}
-	function test1() {
-		test_parse("#(abd,bdf)")
-		test_parse("(abd, adfsdf, asdfd, ");
-		test_parse("!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )");
-		test_parse("!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4)");
-		test_parse("!()");
-		test_parse("!(abd, !@.123.abd.{@.abd}.)");
-		test_parse("(abd, !@.123.abd.$123.{@.abd})");
-		test_parse("(abd, sdfe");
-		test_parse("(abd, !@.123.abd.123.{@.abd.{~.abd})");
-		test_parse("(abd, !@.123.abd.123.{@.abd.{.abd})");
-		test_parse("(abd, !)");
+	function test_parse() {
+		var test = [
+			"#(abd,bdf)",
+			"(abd, adfsdf, asdfd, ",
+			"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )",
+			"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4)",
+			"!()",
+			"!(abd, !@.123.abd.{@.abd}.)",
+			"(abd, !@.123.abd.$123.{@.abd})",
+			"(abd, sdfe",
+			"(abd, !@.123.abd.123.{@.abd.{~.abd})",
+			"(abd, !@.123.abd.123.{@.abd.{.abd})",
+			"(abd, !)"
+		]
+		for (var i in test) {
+			var a = OL.parse(test[i]);
+			if (a) {
+				console.log(a.debug());
+			}
+		}
 	}
 	
 	var root = {
@@ -70,8 +74,8 @@
 	
 	
 	function test() {
-		//test1();
-		 test2();
+		test_parse();
+		// test2();
 	}
 	</script>
 </head>

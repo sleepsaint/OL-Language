@@ -125,7 +125,6 @@ OL.Source.getToken = function() {
 				return this.source.substring(start, i);
 			}
 		case ".":
-			this.cursor = i;
 			if (status == NONE) {
 				++this.cursor;
 				return c;
@@ -201,7 +200,7 @@ OL.Source.getLiteral = function() {
 
 OL.Source.getPath = function() {
 	var root = this.token;
-	if (!this.match("^") && !this.match("~") && !this.match("@")) return;
+	if (!(this.match("^") || this.match("~") || this.match("@"))) return;
 	var keys = [];
 	while (this.match(".")) {
 		var key = this.getKey();
