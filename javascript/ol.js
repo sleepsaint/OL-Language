@@ -323,6 +323,10 @@ OL.fun["="] = OL.fun["=="] = function(params, root, temp, now) {
 	return params[0] == params[1];
 }
 
+OL.fun["!="] = function(params, root, temp, now) {
+	return params[0] != params[1];
+}
+
 OL.fun["+"] = function(params, root, temp, now) {
 	var result = 0;
 	for (var i in params) {
@@ -370,7 +374,7 @@ OL.fun.or = function(params, root, temp, now) {
 }
 
 OL.fun.filter = function(params, root, temp, now) {
-	var list = params[0];
+	var list = OL.autoLookup(root, temp, now, params[0]);
 	var fun = OL.autoParse(root, temp, now, params[1]);
 	var result = {};
 	for (var i in list) {
@@ -381,8 +385,32 @@ OL.fun.filter = function(params, root, temp, now) {
 	return result;
 }
 
+OL.compare = function(value, left, right, root, temp) {
+	if (value.type == "negative") {
+		var a = value.value.lookup(root, temp, left);
+		var b = value.value.lookup(root, temp, right);
+		if (a < b) {
+			return 1;
+		} else if (a > b) {
+			return -1;
+		} else {
+			return 0;
+		}
+	} else {
+		var a = value.lookup(root, temp, left);
+		var b = value.lookup(root, temp, right);
+		if (a > b) {
+			return 1;
+		} else if (a < b) {
+			return -1;
+		} else {
+			return 0;
+		}		
+	}
+}
+
 OL.fun.sort = function(params, root, temp, now) {
-	var list = params[0];
+	var list = OL.autoLookup(root, temp, now, params[0]);
 	var fun = OL.autoParse(root, temp, now, params[1]);
 	var result;
 	if (list instanceof Array) {
@@ -394,31 +422,18 @@ OL.fun.sort = function(params, root, temp, now) {
 		}
 	}
 	result.sort(function(a, b){
-		var c = fun.head.lookup(root, temp, a);
-		var d = fun.head.lookup(root, temp, b);
-		if (c > d) {
-			return 1;
-		} else if (c  < d) {
-			return -1;
-		} else {
-			for (var i in fun.tail) {
-				var e = fun.tail[i];
-				c = e.lookup(root, temp, a);
-				d = e.lookup(root, temp, b);
-				if (c > d) {
-					return 1;
-				} else if (c < d) {
-					return -1;
-				}
-			}
+		var ret = OL.compare(fun.head, a, b, root, temp);
+		for (var i in fun.tail) {
+			if (ret != 0) return ret;
+			else ret = OL.compare(fun.tail[i], a, b, root, temp);
 		}
-		return 0;
+		return ret;
 	});
 	return result;
 }
 
 OL.fun.some = function(params, root, temp, now) {
-	var list = params[0];
+	var list = OL.autoLookup(root, temp, now, params[0]);
 	var fun = OL.autoParse(root, temp, now, params[1]);
 	for (var i in list) {
 		if (fun.lookup(root, temp, list[i])) {

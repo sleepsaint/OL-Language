@@ -44,7 +44,8 @@
 		wearnow: "upper",
 		personwear: "^.wear.{~.person2.wear.{~.wearnow}}",
 		wearfilter1: "#(>, @.price, 150)",
-		wearsorter1: "#(!(=,@.name,Red Hat),@.price))",
+		wearsorter1: "#(!(=,@.name,Red Hat),!@.price))",
+		now: "^.wear",
 	};
 	
 	function test_lookup(source, now) {
@@ -63,7 +64,8 @@
 		test_lookup("(sort, ^.wear, #(@.price))");
 		test_lookup("(sort, ^.wear, #(!(=,@.name,Red Hat),@.price))");
 		test_lookup("(sort, ^.wear, ~.wearsorter1)");
-		test_lookup("(some, ^.wear, ~.wearfilter1)")
+		test_lookup("(some, ^.wear, ~.wearfilter1)");
+		test_lookup("(sort, ~.now, ~.wearsorter1)");
 	}
 	
 	
