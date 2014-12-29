@@ -12,7 +12,7 @@ OL.Source.debug.path = function() {
 	return this.root + this.keys.map(function(a){ return "[" + a.debug() + "]";}).join("");
 }
 
-OL.Source.debug.fun = function() {
+OL.Source.debug.list = function() {
 	return this.name.debug() + "(" + this.params.map(function(a){ return a.debug(); }).join(", ") + ")";
 }
 
@@ -37,7 +37,7 @@ OL.autoLookup = function(root, temp, now, current) {
 }
 
 OL.autoParse = function(root, temp, now, current) {
-	while (current && current.type != "function") {
+	while (current && current.type != "list") {
 		current = OL.parse(current.lookup(root, temp, now));
 	}
 	return current;
@@ -73,7 +73,7 @@ OL.Source.lookup.path = function(root, temp, now) {
 	return current;
 }
 
-OL.Source.lookup.fun = function(root, temp, now) {
+OL.Source.lookup.list = function(root, temp, now) {
 	var fun = OL.fun[this.name.lookup(root, temp, now)];
 	if (fun) {
 		return fun(this.params, root, temp, now);
@@ -156,7 +156,7 @@ OL.Source.error = function(e) {
 }
 
 OL.Source.getValue = function() {
-	return this.getLiteral() || this.getPath() || this.getFunction() || this.getNegative();
+	return this.getLiteral() || this.getPath() || this.getList() || this.getNegative();
 }
 
 OL.Source.getLiteral = function() {
@@ -213,7 +213,7 @@ OL.Source.getString = function() {
 }
 
 OL.Source.getKey = function() {
-	return this.getString() || this.getFragment() || this.getFunction();
+	return this.getString() || this.getFragment() || this.getList();
 }
 
 OL.Source.getFragment = function() {
@@ -230,7 +230,7 @@ OL.Source.getFragment = function() {
 	}
 }
 
-OL.Source.getFunction = function() {
+OL.Source.getList = function() {
     if (!this.match("(")) return;
 	var name = this.getValue();
 	if (name) {
@@ -245,7 +245,7 @@ OL.Source.getFunction = function() {
 			}
 		}
 		if (this.match(")")) {		
-			return {type:"function", name:name, params:params, debug:this.debug.fun, lookup:this.lookup.fun};
+			return {type:"list", name:name, params:params, debug:this.debug.list, lookup:this.lookup.list};
 		} else {
 			this.error("can not match )")
 		}

@@ -17,9 +17,10 @@ ___NOTE___:
 
 ##Syntax
 
-+ _value_ → _literal_|_path_|_function_|_negative_
++ _value_ → _literal_|_path_|_list_|_negative_|_quote_
 + _literal_ → ___number___|___string___
-+ _path_ → (__^__|__@__|__~__)[._key_]
-+ _key_ → ___string___|_function_|_fragment_
++ _path_ → (__^__|__@__|__~__)[._key_]*
++ _key_ → ___string___|_list_|_fragment_
 + _fragment_ → __{__*path*__}__
-+ _function_ → __(__*value*[,*value*]__)__
++ _list_ → __(__*value*[,*value*]*__)__
++ _quote_ → `_list_
