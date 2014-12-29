@@ -261,7 +261,7 @@ OL.Source.getList = function() {
 		if (this.match(")")) {		
 			return {type:"list", head:head, tail:tail, debug:this.debug.list, lookup:this.lookup.list};
 		} else {
-			this.error("can not match )")
+			this.error("can not match )");
 		}
 	} else {
 		this.error("function must have a head");
@@ -274,7 +274,7 @@ OL.Source.getNegative = function() {
 	if (value) {
 		return {type:"negative", value:value, debug:this.debug.negative, lookup:this.lookup.negative};
 	} else {
-		this.error("can not match value for !")
+		this.error("can not match value for !");
 	}
 }
 

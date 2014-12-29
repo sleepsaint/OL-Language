@@ -10,77 +10,123 @@ import Foundation
 
 extension OL {
     
-    class Value {
-        
-        class String2: Value, Printable {
-            let value: String
-            init(value: String) {
-                self.value = value
-            }
-            var description : String {
-                return value
-            }
+    class String2: OLValue, Printable {
+        let value: String
+        init(value: String) {
+            self.value = value
         }
-        
-        class Number: Value, Printable {
-            let value: Double
-            init(value: Double) {
-                self.value = value
-            }
-            var description : String {
-                return "\(value)"
-            }
-
+        var description : String {
+            return value
         }
-        
-        class Path: Value, Printable {
-            let root: String
-            var keys = Array<Value>()
-            init(root: String) {
-                self.root = root
-            }
-            func addKey(key: Value) {
-                keys.append(key)
-            }
-            var description : String {
-                return "\(root)\(keys)"
-            }
-        }
-        
-        class List: Value, Printable {
-            let head: Value
-            var tail = Array<Value>()
-            init(head: Value) {
-                self.head = head
-            }
-            func addItem(item: Value) {
-                tail.append(item)
-            }
-            var description : String {
-                return "\(head)(\(tail))"
-            }
-        }
-        
-        class Negative: Value, Printable {
-            let value: Value
-            init(value: Value) {
-                self.value = value
-            }
-            var description : String {
-                return "!\(value)"
-            }
-
-        }
-        
-        class Quote: Value, Printable {
-            let value: Value
-            init(value: Value) {
-                self.value = value
-            }
-            var description : String {
-                return "#\(value)"
-            }
+        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+            return value
         }
     }
- 
+    
+    class Number: OLValue, Printable {
+        let value: Double
+        init(value: Double) {
+            self.value = value
+        }
+        var description : String {
+            return "\(value)"
+        }
+        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+            return value
+        }
+    }
+    
+    class Path: OLValue, Printable {
+        let root: String
+        var keys = Array<OLValue>()
+        init(root: String) {
+            self.root = root
+        }
+        func addKey(key: OLValue) {
+            keys.append(key)
+        }
+        var description : String {
+            return "\(root)\(keys)"
+        }
+        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+            var current : OLLookup!
+            switch self.root {
+            case "^":
+                current = root
+            case "~":
+                current = temp
+            case "@":
+                current = now
+            default:
+                return nil
+            }
+            for key in keys {
+                if let value = key.lookup(root, temp: temp, now: now) {
+                    current = current[value]
+                } else {
+                    return nil
+                }
+            }
+            return current
+        }
+    }
+    
+    class List: OLValue, Printable {
+        let head: OLValue
+        var tail = Array<OLValue>()
+        init(head: OLValue) {
+            self.head = head
+        }
+        func addItem(item: OLValue) {
+            tail.append(item)
+        }
+        var description : String {
+            return "\(head)(\(tail))"
+        }
+        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+            var current : OLLookup!
+            return current
+            
+        }
+        
+    }
+    
+    class Negative: OLValue, Printable {
+        let value: OLValue
+        init(value: OLValue) {
+            self.value = value
+        }
+        var description : String {
+            return "!\(value)"
+        }
+        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+            var current : OLLookup!
+            return current
+            
+        }
+        
+    }
+    
+    class Quote: OLValue, Printable {
+        let value: OLValue
+        init(value: OLValue) {
+            self.value = value
+        }
+        var description : String {
+            return "#\(value)"
+        }
+        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+            var current : OLLookup!
+            return current
+            
+        }
+    }
+    
+    class func autoLookup(root: OLLookup, temp: OLLookup, now: OLLookup, current: OLLookup?) -> OLLookup? {
+        return current
+    }
+    
+    class func autoParse(root: OLLookup, temp: OLLookup, now: OLLookup, current: OLLookup?) -> OLLookup? {
+        return current
+    }
 }

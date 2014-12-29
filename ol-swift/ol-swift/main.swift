@@ -29,4 +29,21 @@ func test_parse() {
     }
 }
 
-test_parse()
+func test_lookup() {
+    var root = OLDictionary()
+    root.dict = ["abc":1]
+    let test = [
+        "^.abc"
+    ]
+    for t in test {
+        if let value = OL.parse(t) {
+            if let a = value.lookup(root, temp: root, now: root) {
+                println(a)
+            }
+        }
+    }
+
+}
+
+
+test_lookup()
