@@ -13,11 +13,15 @@ OL.Source.debug.path = function() {
 }
 
 OL.Source.debug.list = function() {
-	return this.name.debug() + "(" + this.params.map(function(a){ return a.debug(); }).join(", ") + ")";
+	return this.head.debug() + "(" + this.tail.map(function(a){ return a.debug(); }).join(", ") + ")";
 }
 
 OL.Source.debug.negative = function() {
 	return "!{" + this.value.debug() + "}";
+}
+
+OL.Source.debug.quote = function() {
+	return "#" + this.value.debug();
 }
 
 OL.Source.lookup.literal = function() {
@@ -38,9 +42,14 @@ OL.autoLookup = function(root, temp, now, current) {
 
 OL.autoParse = function(root, temp, now, current) {
 	while (current && current.type != "list") {
-		current = OL.parse(current.lookup(root, temp, now));
+		var a = OL.parse(current);
+		if (a) {
+			current = a.lookup(root, temp, now);
+		} else {
+			return;
+		}
 	}
-	return current;
+	return current;	
 }
 
 
@@ -74,14 +83,18 @@ OL.Source.lookup.path = function(root, temp, now) {
 }
 
 OL.Source.lookup.list = function(root, temp, now) {
-	var fun = OL.fun[this.name.lookup(root, temp, now)];
-	if (fun) {
-		return fun(this.params, root, temp, now);
+	var funName = OL.fun[this.head.lookup(root, temp, now)];
+	if (funName) {
+		return funName(this.tail.map(function(a){ return a.lookup(root, temp, now); }), root, temp, now);
 	}
 }
 
 OL.Source.lookup.negative = function(root, temp, now) {
 	return !this.value.lookup(root, temp, now);
+}
+
+OL.Source.lookup.quote = function(root, temp, now) {
+	return this.value;
 }
 
 OL.Source.getToken = function() {
@@ -103,6 +116,7 @@ OL.Source.getToken = function() {
 		case "{":
 		case "}":
 		case ",":
+		case "#":
 			if (status == NONE) {
 				++this.cursor;
 				return c;
@@ -124,7 +138,7 @@ OL.Source.getToken = function() {
 		case " ":
 			++this.cursor;
 			break;
-		case "#":
+		case "$":
 			if (status == NONE) {
 				start = this.cursor;
 				status = NUMBER;
@@ -156,7 +170,7 @@ OL.Source.error = function(e) {
 }
 
 OL.Source.getValue = function() {
-	return this.getLiteral() || this.getPath() || this.getList() || this.getNegative();
+	return this.getLiteral() || this.getPath() || this.getList() || this.getNegative() || this.getQuote();
 }
 
 OL.Source.getLiteral = function() {
@@ -172,11 +186,12 @@ OL.Source.getLiteral = function() {
 	case "}":
 	case ",":
 	case ".":
+	case "#":
 		return;
 	default:
 		var literal = this.token;
 		this.token = this.getToken();
-		if (literal[0] == "#") {
+		if (literal[0] == "$") {
 			return {type:"literal", value:literal.substring(1) - 0, debug:this.debug.literal, lookup:this.lookup.literal};
 		} else {
 			return {type:"literal", value:literal, debug:this.debug.literal, lookup:this.lookup.literal};
@@ -232,25 +247,25 @@ OL.Source.getFragment = function() {
 
 OL.Source.getList = function() {
     if (!this.match("(")) return;
-	var name = this.getValue();
-	if (name) {
-		var params = [];
+	var head = this.getValue();
+	if (head) {
+		var tail = [];
 		while (this.match(",")) {
-			var param = this.getValue();
-			if (param) {
-				params.push(param);
+			var value = this.getValue();
+			if (value) {
+				tail.push(value);
 			} else {
-				this.error("can not match a param");
+				this.error("tail can not match a value");
 				return;
 			}
 		}
 		if (this.match(")")) {		
-			return {type:"list", name:name, params:params, debug:this.debug.list, lookup:this.lookup.list};
+			return {type:"list", head:head, tail:tail, debug:this.debug.list, lookup:this.lookup.list};
 		} else {
 			this.error("can not match )")
 		}
 	} else {
-		this.error("function must have a name");
+		this.error("function must have a head");
 	}
 }
 
@@ -262,6 +277,16 @@ OL.Source.getNegative = function() {
 	} else {
 		this.error("can not match value for !")
 	}
+}
+
+OL.Source.getQuote = function() {
+	if (!this.match("#")) return;
+	var value = this.getValue();
+	if (value) {
+		return {type:"quote", value:value, debug:this.debug.quote, lookup:this.lookup.quote};
+	} else {
+		this.error("can not match value for #")
+	}	
 }
 
 OL.parse = function(source) {
@@ -279,29 +304,29 @@ OL.parse = function(source) {
 }
 
 OL.fun[">"] = function(params, root, temp, now) {
-	return params[0].lookup(root, temp, now) > params[1].lookup(root, temp, now);
+	return params[0] > params[1];
 }
 
 OL.fun[">="] = function(params, root, temp, now) {
-	return params[0].lookup(root, temp, now) >= params[1].lookup(root, temp, now);
+	return params[0] >= params[1];
 }
 
 OL.fun["<"] = function(params, root, temp, now) {
-	return params[0].lookup(root, temp, now) < params[1].lookup(root, temp, now);
+	return params[0] < params[1];
 }
 
 OL.fun["<="] = function(params, root, temp, now) {
-	return params[0].lookup(root, temp, now) <= params[1].lookup(root, temp, now);
+	return params[0] <= params[1];
 }
 
 OL.fun["="] = OL.fun["=="] = function(params, root, temp, now) {
-	return params[0].lookup(root, temp, now) == params[1].lookup(root, temp, now);
+	return params[0] == params[1];
 }
 
 OL.fun["+"] = function(params, root, temp, now) {
 	var result = 0;
 	for (var i in params) {
-		result += params[i].lookup(root, temp, now);
+		result += params[i];
 	}
 	return result;
 }
@@ -309,26 +334,26 @@ OL.fun["+"] = function(params, root, temp, now) {
 OL.fun["*"] = function(params, root, temp, now) {
 	var result = 1;
 	for (var i in params) {
-		result *= params[i].lookup(root, temp, now);
+		result *= params[i];
 	}
 	return result;
 }
 
 OL.fun["-"] = function(params, root, temp, now) {
-	return params[0].lookup(root, temp, now) - params[1].lookup(root, temp, now);
+	return params[0] - params[1];
 }
 
 OL.fun["/"] = function(params, root, temp, now) {
-	return params[0].lookup(root, temp, now) / params[1].lookup(root, temp, now);
+	return params[0] / params[1];
 }
 
 OL.fun.not = function(params, root, temp, now) {
-	return !params[0].lookup(root, temp, now);
+	return !params[0];
 }
 
 OL.fun.and = function(params, root, temp, now) {
 	for (var i in params) {
-		if (!params[i].lookup(root, temp, now)) {
+		if (!params[i]) {
 			return false;
 		}
 	}
@@ -337,15 +362,15 @@ OL.fun.and = function(params, root, temp, now) {
 
 OL.fun.or = function(params, root, temp, now) {
 	for (var i in params) {
-		if (params[i].lookup(root, temp, now)) {
+		if (params[i]) {
 			return true;
 		}
 	}
 	return false;
 }
 
-OL.fun["filter"] = function(params, root, temp, now) {
-	var list = OL.autoLookup(root, temp, now, params[0].lookup(root, temp, now));
+OL.fun.filter = function(params, root, temp, now) {
+	var list = params[0];
 	var fun = OL.autoParse(root, temp, now, params[1]);
 	var result = {};
 	for (var i in list) {
@@ -356,8 +381,8 @@ OL.fun["filter"] = function(params, root, temp, now) {
 	return result;
 }
 
-OL.fun["sort"] = function(params, root, temp, now) {
-	var list = OL.autoLookup(root, temp, now, params[0].lookup(root, temp, now));
+OL.fun.sort = function(params, root, temp, now) {
+	var list = params[0];
 	var fun = OL.autoParse(root, temp, now, params[1]);
 	var result;
 	if (list instanceof Array) {
@@ -369,15 +394,15 @@ OL.fun["sort"] = function(params, root, temp, now) {
 		}
 	}
 	result.sort(function(a, b){
-		var c = fun.name.lookup(root, temp, a);
-		var d = fun.name.lookup(root, temp, b);
+		var c = fun.head.lookup(root, temp, a);
+		var d = fun.head.lookup(root, temp, b);
 		if (c > d) {
 			return 1;
 		} else if (c  < d) {
 			return -1;
 		} else {
-			for (var i in fun.params) {
-				var e = fun.params[i];
+			for (var i in fun.tail) {
+				var e = fun.tail[i];
 				c = e.lookup(root, temp, a);
 				d = e.lookup(root, temp, b);
 				if (c > d) {
@@ -390,6 +415,17 @@ OL.fun["sort"] = function(params, root, temp, now) {
 		return 0;
 	});
 	return result;
+}
+
+OL.fun.some = function(params, root, temp, now) {
+	var list = params[0];
+	var fun = OL.autoParse(root, temp, now, params[1]);
+	for (var i in list) {
+		if (fun.lookup(root, temp, list[i])) {
+			return true;
+		}
+	}
+	return false;
 }
 
 

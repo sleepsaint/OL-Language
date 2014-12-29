@@ -10,12 +10,13 @@
 		if (a) console.log(a.debug());
 	}
 	function test1() {
+		test_parse("#(abd,bdf)")
 		test_parse("(abd, adfsdf, asdfd, ");
-		test_parse("!(abd, !@.123.abd.{@.abd}.(~.abc,daf, #12.4) )");
-		test_parse("!(abd, !@.123.abd.{@.abd}.(~.abc,daf, #12.4)");
+		test_parse("!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )");
+		test_parse("!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4)");
 		test_parse("!()");
 		test_parse("!(abd, !@.123.abd.{@.abd}.)");
-		test_parse("(abd, !@.123.abd.#123.{@.abd})");
+		test_parse("(abd, !@.123.abd.$123.{@.abd})");
 		test_parse("(abd, sdfe");
 		test_parse("(abd, !@.123.abd.123.{@.abd.{~.abd})");
 		test_parse("(abd, !@.123.abd.123.{@.abd.{.abd})");
@@ -42,7 +43,8 @@
 		person2: "^.person.P0001",
 		wearnow: "upper",
 		personwear: "^.wear.{~.person2.wear.{~.wearnow}}",
-		wearfilter1: "(>, @.price, 150)"
+		wearfilter1: "#(>, @.price, 150)",
+		wearsorter1: "#(!(=,@.name,Red Hat),@.price))",
 	};
 	
 	function test_lookup(source, now) {
@@ -55,17 +57,19 @@
 		test_lookup("^.wear.{~.person2.wear.hat}.price");
 		test_lookup("~.personwear.price");
 		test_lookup("(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)");
-		test_lookup("(filter, ^.wear, (>, @.price, 150))");
-		test_lookup("(filter, ^.wear, ~.wearfilter1)")
-		test_lookup("(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )")
-		test_lookup("(sort, ^.wear, (@.price))")
+		test_lookup("(filter, ^.wear, #(>, @.price, 150))");
+		test_lookup("(filter, ^.wear, ~.wearfilter1)");
+		test_lookup("(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )");
+		test_lookup("(sort, ^.wear, #(@.price))");
+		test_lookup("(sort, ^.wear, #(!(=,@.name,Red Hat),@.price))");
+		test_lookup("(sort, ^.wear, ~.wearsorter1)");
+		test_lookup("(some, ^.wear, ~.wearfilter1)")
 	}
 	
 	
 	function test() {
 		//test1();
-		console.log("abd" instanceof Object);
-		test2();
+		 test2();
 	}
 	</script>
 </head>
