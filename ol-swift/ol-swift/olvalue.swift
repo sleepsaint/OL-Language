@@ -1,5 +1,5 @@
 //
-//  olvalue.swift
+//  Value.swift
 //  ol-swift
 //
 //  Created by 伍 威 on 14/12/29.
@@ -10,46 +10,52 @@ import Foundation
 
 extension OL {
     
-    class String2: OLValue, Printable {
-        let value: String
-        init(value: String) {
+    class Value {
+        func lookup(root: AnyObject, temp: AnyObject, now: AnyObject) -> AnyObject? {
+            return nil
+        }
+    }
+    
+    class String2: Value, Printable {
+        let value: NSString
+        init(value: NSString) {
             self.value = value
         }
         var description : String {
             return value
         }
-        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+        override func lookup(root: AnyObject, temp: AnyObject, now: AnyObject) -> AnyObject? {
             return value
         }
     }
     
-    class Number: OLValue, Printable {
-        let value: Double
-        init(value: Double) {
+    class Number: Value, Printable {
+        let value: NSNumber
+        init(value: NSNumber) {
             self.value = value
         }
         var description : String {
             return "\(value)"
         }
-        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
+        override func lookup(root: AnyObject, temp: AnyObject, now: AnyObject) -> AnyObject? {
             return value
         }
     }
     
-    class Path: OLValue, Printable {
+    class Path: Value, Printable {
         let root: String
-        var keys = Array<OLValue>()
+        var keys = Array<Value>()
         init(root: String) {
             self.root = root
         }
-        func addKey(key: OLValue) {
+        func addKey(key: Value) {
             keys.append(key)
         }
         var description : String {
             return "\(root)\(keys)"
         }
-        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
-            var current : OLLookup!
+        override func lookup(root: AnyObject, temp: AnyObject, now: AnyObject) -> AnyObject? {
+            var current : AnyObject!
             switch self.root {
             case "^":
                 current = root
@@ -61,8 +67,16 @@ extension OL {
                 return nil
             }
             for key in keys {
-                if let value = key.lookup(root, temp: temp, now: now) {
-                    current = current[value]
+                if let value = key.lookup(root, temp: temp, now: now) as? NSString {
+                    current = OL.autoLookup(root, temp: temp, now: now, current: current)
+                    switch current {
+                    case let array as NSArray:
+                        current = array[Int(value.intValue)]
+                    case let dict as NSDictionary:
+                        current = dict[value]
+                    default:
+                        return nil
+                    }
                 } else {
                     return nil
                 }
@@ -71,62 +85,63 @@ extension OL {
         }
     }
     
-    class List: OLValue, Printable {
-        let head: OLValue
-        var tail = Array<OLValue>()
-        init(head: OLValue) {
+    class List: Value, Printable {
+        let head: Value
+        var tail = Array<Value>()
+        init(head: Value) {
             self.head = head
         }
-        func addItem(item: OLValue) {
+        func addItem(item: Value) {
             tail.append(item)
         }
         var description : String {
             return "\(head)(\(tail))"
         }
-        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
-            var current : OLLookup!
-            return current
+        override func lookup(root: AnyObject, temp: AnyObject, now: AnyObject) -> AnyObject? {
+            if let name = head.lookup(root, temp: temp, now: now) as? NSString {
+                if let function = OL.Function[name] {
+                    return function(tail.map({$0.lookup(root, temp: temp, now: now)}), root, temp, now)
+                }
+            }
             
+            return nil
         }
         
     }
     
-    class Negative: OLValue, Printable {
-        let value: OLValue
-        init(value: OLValue) {
+    class Negative: Value, Printable {
+        let value: Value
+        init(value: Value) {
             self.value = value
         }
         var description : String {
             return "!\(value)"
         }
-        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
-            var current : OLLookup!
-            return current
-            
+        override func lookup(root: AnyObject, temp: AnyObject, now: AnyObject) -> AnyObject? {
+            return !OL.toBool(value.lookup(root, temp: temp, now: now))
         }
-        
     }
     
-    class Quote: OLValue, Printable {
-        let value: OLValue
-        init(value: OLValue) {
+    class Quote: Value, Printable {
+        let value: Value
+        init(value: Value) {
             self.value = value
         }
         var description : String {
             return "#\(value)"
         }
-        func lookup(root: OLLookup, temp: OLLookup, now: OLLookup) -> OLLookup? {
-            var current : OLLookup!
-            return current
-            
+        override func lookup(root: AnyObject, temp: AnyObject, now: AnyObject) -> AnyObject? {
+            return value
         }
     }
     
-    class func autoLookup(root: OLLookup, temp: OLLookup, now: OLLookup, current: OLLookup?) -> OLLookup? {
-        return current
-    }
-    
-    class func autoParse(root: OLLookup, temp: OLLookup, now: OLLookup, current: OLLookup?) -> OLLookup? {
-        return current
+    static func autoLookup(root: AnyObject, temp: AnyObject, now: AnyObject, current: AnyObject?) -> AnyObject? {
+        var ret : AnyObject? = current
+        while let source = ret as? NSString {
+            if let value = OL.parse(source) {
+                ret = value.lookup(root, temp: temp, now: now)
+            }
+        }
+        return ret
     }
 }

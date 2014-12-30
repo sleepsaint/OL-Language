@@ -73,7 +73,7 @@ extension OL {
                 errorLog = "\(e) at \(cursor)"
             }
         }
-        func getLiteral() -> OLValue? {
+        func getLiteral() -> Value? {
             if let literal = token {
                 switch literal {
                 case "~", "!", "@", "^", "(", ")", "{", "}", ",", ".", "#":
@@ -81,7 +81,7 @@ extension OL {
                 default:
                     token = getToken()
                     if literal[literal.startIndex] == "$" {
-                        return Number(value: (literal.substringFromIndex(literal.startIndex) as NSString).doubleValue)
+                        return Number(value: (literal.substringFromIndex(advance(literal.startIndex ,1)) as NSString).doubleValue)
                     } else {
                         return String2(value: literal)
                     }
@@ -91,7 +91,7 @@ extension OL {
                 return nil
             }
         }
-        func getPath() -> OLValue? {
+        func getPath() -> Value? {
             if let root = token {
                 if match("^") || match("~") || match("@") {
                     let ret = Path(root: root)
@@ -108,7 +108,7 @@ extension OL {
             }
             return nil
         }
-        func getString() -> OLValue? {
+        func getString() -> Value? {
             if let ret = getLiteral() {
                 if ret is String2 {
                     return ret
@@ -116,10 +116,10 @@ extension OL {
             }
             return nil
         }
-        func getKey() -> OLValue? {
+        func getKey() -> Value? {
             return getString() ?? getFragment() ?? getList()
         }
-        func getFragment() -> OLValue? {
+        func getFragment() -> Value? {
             if match("{") {
                 if let ret = getPath() {
                     if match("}") {
@@ -133,7 +133,7 @@ extension OL {
             }
             return nil
         }
-        func getList() -> OLValue? {
+        func getList() -> Value? {
             if match("(") {
                 if let head = getValue() {
                     let ret = List(head: head)
@@ -154,7 +154,7 @@ extension OL {
             }
             return nil
         }
-        func getNegative() -> OLValue? {
+        func getNegative() -> Value? {
             if match("!") {
                 if let value = getValue() {
                     return Negative(value: value)
@@ -164,7 +164,7 @@ extension OL {
             }
             return nil
         }
-        func getOuote() -> OLValue? {
+        func getOuote() -> Value? {
             if match("#") {
                 if let value = getValue() {
                     return Quote(value: value)
@@ -174,12 +174,12 @@ extension OL {
             }
             return nil
         }
-        func getValue() -> OLValue? {
+        func getValue() -> Value? {
             return getLiteral() ?? getPath() ?? getList() ?? getNegative() ?? getOuote()
         }
     }
     
-    class func parse(source: String) -> OLValue? {
+    static func parse(source: String) -> Value? {
         let s = Source(source: source)
         if let ret = s.getValue() {
             return ret

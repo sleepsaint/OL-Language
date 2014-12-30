@@ -29,7 +29,7 @@ OL.Source.lookup.literal = function() {
 }
 
 OL.autoLookup = function(root, temp, now, current) {
-	while (current && !(current instanceof Object)) {
+	while (current && current.length) {
 		var a = OL.parse(current);
 		if (a) {
 			current = a.lookup(root, temp, now);
@@ -39,19 +39,6 @@ OL.autoLookup = function(root, temp, now, current) {
 	}
 	return current;	
 }
-
-OL.autoParse = function(root, temp, now, current) {
-	while (current && current.type != "list") {
-		var a = OL.parse(current);
-		if (a) {
-			current = a.lookup(root, temp, now);
-		} else {
-			return;
-		}
-	}
-	return current;	
-}
-
 
 OL.Source.lookup.path = function(root, temp, now) {
 	var current;
@@ -374,7 +361,7 @@ OL.fun.or = function(params, root, temp, now) {
 
 OL.fun.filter = function(params, root, temp, now) {
 	var list = OL.autoLookup(root, temp, now, params[0]);
-	var fun = OL.autoParse(root, temp, now, params[1]);
+	var fun = OL.autoLookup(root, temp, now, params[1]);
 	var result = {};
 	for (var i in list) {
 		if (fun.lookup(root, temp, list[i])) {
@@ -410,7 +397,7 @@ OL.compare = function(value, left, right, root, temp) {
 
 OL.fun.sort = function(params, root, temp, now) {
 	var list = OL.autoLookup(root, temp, now, params[0]);
-	var fun = OL.autoParse(root, temp, now, params[1]);
+	var fun = OL.autoLookup(root, temp, now, params[1]);
 	var result;
 	if (list instanceof Array) {
 		result = list;
@@ -433,7 +420,7 @@ OL.fun.sort = function(params, root, temp, now) {
 
 OL.fun.some = function(params, root, temp, now) {
 	var list = OL.autoLookup(root, temp, now, params[0]);
-	var fun = OL.autoParse(root, temp, now, params[1]);
+	var fun = OL.autoLookup(root, temp, now, params[1]);
 	for (var i in list) {
 		if (fun.lookup(root, temp, list[i])) {
 			return true;

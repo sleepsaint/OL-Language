@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E0127B31A5192DE001D8EE0 /* olfunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0127B21A5192DE001D8EE0 /* olfunction.swift */; };
 		4E29CF221A51191E001F83C0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E29CF211A51191E001F83C0 /* main.swift */; };
 		4E29CF291A5127FA001F83C0 /* olsource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E29CF281A5127FA001F83C0 /* olsource.swift */; };
 		4E29CF2B1A5140E7001F83C0 /* olvalue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E29CF2A1A5140E7001F83C0 /* olvalue.swift */; };
-		4E29CF2D1A51533C001F83C0 /* ol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E29CF2C1A51533C001F83C0 /* ol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,11 +26,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4E0127B21A5192DE001D8EE0 /* olfunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = olfunction.swift; sourceTree = "<group>"; };
 		4E29CF1E1A51191E001F83C0 /* ol-swift */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "ol-swift"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E29CF211A51191E001F83C0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		4E29CF281A5127FA001F83C0 /* olsource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = olsource.swift; sourceTree = "<group>"; };
 		4E29CF2A1A5140E7001F83C0 /* olvalue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = olvalue.swift; sourceTree = "<group>"; };
-		4E29CF2C1A51533C001F83C0 /* ol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,7 +66,7 @@
 				4E29CF211A51191E001F83C0 /* main.swift */,
 				4E29CF281A5127FA001F83C0 /* olsource.swift */,
 				4E29CF2A1A5140E7001F83C0 /* olvalue.swift */,
-				4E29CF2C1A51533C001F83C0 /* ol.swift */,
+				4E0127B21A5192DE001D8EE0 /* olfunction.swift */,
 			);
 			path = "ol-swift";
 			sourceTree = "<group>";
@@ -129,8 +129,8 @@
 			files = (
 				4E29CF291A5127FA001F83C0 /* olsource.swift in Sources */,
 				4E29CF221A51191E001F83C0 /* main.swift in Sources */,
-				4E29CF2D1A51533C001F83C0 /* ol.swift in Sources */,
 				4E29CF2B1A5140E7001F83C0 /* olvalue.swift in Sources */,
+				4E0127B31A5192DE001D8EE0 /* olfunction.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

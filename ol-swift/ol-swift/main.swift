@@ -10,6 +10,7 @@ import Foundation
 
 func test_parse() {
     let test = [
+        "^.wear.{^.person.{~.person}.wear.hat}.price",
         "#(abd,bdf)",
         "(abd, adfsdf, asdfd, ",
         "!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )",
@@ -30,14 +31,26 @@ func test_parse() {
 }
 
 func test_lookup() {
-    var root = OLDictionary()
-    root.dict = ["abc":1]
+    let root = NSJSONSerialization.JSONObjectWithData(NSString(string: "{\"person\":{\"P0001\":{\"name\":\"Tom\",\"age\":30,\"wear\":{\"hat\":\"W0001\",\"upper\":\"W0002\",\"under\":\"W0003\",\"shoes\":null}},\"P0002\":{\"name\":\"May\",\"age\":25,\"wear\":{\"hat\":\"W0004\",\"upper\":\"W0005\",\"under\":\"W0006\",\"shoes\":\"W0007\"}}},\"wear\":{\"W0001\":{\"name\":\"Red Hat\",\"price\":100},\"W0002\":{\"name\":\"White Jacket\",\"price\":200},\"W0003\":{\"name\":\"Black Shorts\",\"price\":50},\"W0004\":{\"name\":\"White Hat\",\"price\":210},\"W0005\":{\"name\":\"Red Jacket\",\"price\":220},\"W0006\":{\"name\":\"White Skirt\",\"price\":60},\"W0007\":{\"name\":\"Red HHS\",\"price\":10}}}").dataUsingEncoding(NSUTF8StringEncoding)!, options: NSJSONReadingOptions(0), error: nil) as NSDictionary
+    let temp = NSJSONSerialization.JSONObjectWithData(NSString(string: "{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"#(>, @.price, 150)\",\"wearsorter1\":\"#(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}").dataUsingEncoding(NSUTF8StringEncoding)!, options: NSJSONReadingOptions(0), error: nil) as NSDictionary
     let test = [
-        "^.abc"
+        "^.wear.{^.person.{~.person}.wear.hat}.price",
+        "^.wear.{~.person2.wear.hat}.price",
+        "~.personwear.price",
+        "(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
+        "(filter, ^.wear, #(>, @.price, $150))",
+        "(filter, ^.wear, ~.wearfilter1)",
+        "(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )",
+        "(sort, ^.wear, #(@.price))",
+        "(sort, ^.wear, #(!(=,@.name,Red Hat),@.price))",
+        "(sort, ^.wear, ~.wearsorter1)",
+        "(some, ^.wear, ~.wearfilter1)",
+        "(sort, ~.now, ~.wearsorter1)",
     ]
     for t in test {
         if let value = OL.parse(t) {
-            if let a = value.lookup(root, temp: root, now: root) {
+            if let a : AnyObject = value.lookup(root, temp: temp, now: root) {
+                println(t)
                 println(a)
             }
         }
@@ -45,5 +58,5 @@ func test_lookup() {
 
 }
 
-
+//test_parse()
 test_lookup()
