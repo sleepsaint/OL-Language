@@ -347,7 +347,7 @@ OL.fun.and = function(params, root, temp, now) {
 			return false;
 		}
 	}
-	return true;
+	return params.length > 0;
 }
 
 OL.fun.or = function(params, root, temp, now) {
@@ -358,6 +358,18 @@ OL.fun.or = function(params, root, temp, now) {
 	}
 	return false;
 }
+
+OL.fun.random = function(params, root, temp, now) {
+	switch (params.length) {
+	case 0:
+		return Math.random();
+	case 1:
+		return Math.floor(Math.random() * params[0]);
+	default:
+		return params[0] + Math.floor(Math.random() * (params[1] - params[0]))
+	}
+}
+
 
 OL.fun.filter = function(params, root, temp, now) {
 	var list = OL.autoLookup(root, temp, now, params[0]);
@@ -408,12 +420,21 @@ OL.fun.sort = function(params, root, temp, now) {
 		}
 	}
 	result.sort(function(a, b){
-		var ret = OL.compare(fun.head, a, b, root, temp);
-		for (var i in fun.tail) {
-			if (ret != 0) return ret;
-			else ret = OL.compare(fun.tail[i], a, b, root, temp);
+		if (fun.type == "list") {
+			var ret = OL.compare(fun.head, a, b, root, temp);
+			for (var i in fun.tail) {
+				if (ret != 0) return ret;
+				else ret = OL.compare(fun.tail[i], a, b, root, temp);
+			}
+			return ret;
+		} else if (fun.type == "path") {
+			return OL.compare(fun, a, b, root, temp);
+		} else if (fun.type == "negative") {
+			return -OL.compare(fun.value, a, b, root, temp);
+		} else {
+			return 0;
 		}
-		return ret;
+
 	});
 	return result;
 }

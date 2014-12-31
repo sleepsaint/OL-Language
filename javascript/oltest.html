@@ -66,6 +66,12 @@
 			"(sort, ^.wear, ~.wearsorter1)",
 			"(some, ^.wear, ~.wearfilter1)",
 			"(sort, ~.now, ~.wearsorter1)",
+			"(some, ~.now, #(>,@.price,50))",
+			"(sort, ^.wear, #@.price)",
+			"(sort, ^.wear, #!@.price)",
+			"(random)",
+			"(random, $5)",
+			"(random, $-5, $-3)"
 		]
 		for (var i in test) {
 			var source = test[i];
