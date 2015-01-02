@@ -17,14 +17,14 @@ namespace OL {
     class JSON {
         std::string _source;
         size_t _cursor;
-        std::string _token;
+        int _token;
+        std::string _tokenString;
     public:
         JSON(const std::string& source);
         Value* getValue();
-        std::string getToken();
     private:
-        bool match(const std::string& expected);
-        void error(const std::string& e);
+        int getToken();
+        bool match(int expected);
         Dictionary* getDictionary();
         Array* getArray();
         Number* getNumber();

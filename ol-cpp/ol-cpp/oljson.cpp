@@ -16,7 +16,7 @@ namespace OL {
         _token = getToken();
     }
     
-    string JSON::getToken() {
+    int JSON::getToken() {
         auto end = _source.length();
         auto start = end;
         for (auto i = _cursor; i < end; ++i) {
@@ -31,10 +31,11 @@ namespace OL {
                 case '"':
                     if (start == end) {
                         ++_cursor;
-                        return string(1, c);
+                        return c;
                     } else {
                         _cursor = i;
-                        return _source.substr(start, _cursor - start);
+                        _tokenString = _source.substr(start, i - start);
+                        return 256;
                     }
                 case '\n':
                     ++_cursor;
@@ -45,10 +46,15 @@ namespace OL {
             }
         }
         _cursor = end;
-        return start == end ? "" : _source.substr(start);
+        if (start == end) {
+            return 0;
+        } else {
+             _tokenString = _source.substr(start);
+            return 256;
+        }
     }
     
-    bool JSON::match(const std::string &expected) {
+    bool JSON::match(int expected) {
         if (_token == expected) {
             _token = getToken();
             return true;
@@ -59,7 +65,7 @@ namespace OL {
     
     bool JSON::getKeyValue(std::unique_ptr<Dictionary> &dict) {
         unique_ptr<String> key(getString());
-        if (match(":")) {
+        if (match(':')) {
             dict->_value[key->_value] = ValuePtr(getValue());
             return true;
         } else {
@@ -68,16 +74,16 @@ namespace OL {
     }
     
     Dictionary* JSON::getDictionary() {
-        if (match("{")) {
+        if (match('{')) {
             unique_ptr<Dictionary> dict(new Dictionary);
             if (getKeyValue(dict)) {
-                while (match(",")) {
+                while (match(',')) {
                     if (!getKeyValue(dict)) {
                         return nullptr;
                     }
                 }
             }
-            if (match("}")) {
+            if (match('}')) {
                 return dict.release();
             }
         }
@@ -95,16 +101,16 @@ namespace OL {
     }
     
     Array* JSON::getArray() {
-        if (match("[")) {
+        if (match('[')) {
             unique_ptr<Array> array(new Array);
             if (getArrayValue(array)) {
-                while (match(",")) {
+                while (match(',')) {
                     if (!getArrayValue(array)) {
                         return nullptr;
                     }
                 }
             }
-            if (match("]")) {
+            if (match(']')) {
                 return array.release();
             }
         }
@@ -112,11 +118,11 @@ namespace OL {
     }
     
     String* JSON::getString() {
-        if (match("\"")) {
+        if (match('"')) {
             String* s = new String;
             s->_value = _token;
             _token = getToken();
-            if (match("\"")) {
+            if (match('"')) {
                 return s;
             } else {
                 delete s;
@@ -126,11 +132,11 @@ namespace OL {
     }
     
     Number* JSON::getNumber() {
-        if (_token.length() > 0) {
-            auto c = _token[0];
+        if (_tokenString.length() > 0) {
+            auto c = _tokenString[0];
             if (c == '-' || (c >= '0' && c <= '9')){
                 Number* n = new Number;
-                n->_value = stod(_token);
+                n->_value = stod(_tokenString);
                 _token = getToken();
                 return n;
             }
@@ -139,10 +145,10 @@ namespace OL {
     }
     
     Value* JSON::getBool() {
-        if (_token == "true") {
+        if (_tokenString == "true") {
             _token = getToken();
             return new Number(1);
-        } else if (_token == "false") {
+        } else if (_tokenString == "false") {
             _token = getToken();
             return new Number(0);
         }
@@ -150,7 +156,7 @@ namespace OL {
     }
     
     Value* JSON::getNull() {
-        if (_token == "null") {
+        if (_tokenString == "null") {
             _token = getToken();
             return new Null;
         }

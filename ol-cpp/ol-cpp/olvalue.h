@@ -19,8 +19,9 @@ namespace OL {
         
     };
     
-    class Value {
+    class Value {        
     public:
+        virtual ~Value() {}
         virtual std::string description() = 0;
     };
     
@@ -59,22 +60,34 @@ namespace OL {
     };
     
     class Path : public Value {
+        ValuePtr _root;
+        std::vector<ValuePtr> _keys;
     public:
+        Path(Value* root);
+        void addKey(Value* key);
         std::string description();
     };
     
     class List : public Value {
+        ValuePtr _head;
+        std::vector<ValuePtr> _tail;
     public:
+        List(Value* head);
+        void addItem(Value* item);
         std::string description();
     };
     
     class Negative : public Value {
+        ValuePtr _value;
     public:
+        Negative(Value* value);
         std::string description();
     };
     
     class Quote : public Value {
+        ValuePtr _value;
     public:
+        Quote(Value* value);
         std::string description();
     };
     

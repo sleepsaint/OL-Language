@@ -82,10 +82,19 @@
 	
 	function test() {
 		// test_parse();
-		test_lookup();
+		// test_lookup();
 		// var json = JSON.stringify(temp);
 	// 	var pp = json.replace(/"/g, "\\\"");
 	// 	console.log(pp);
+	var s = JSON.stringify(root);
+	var d = new Date();
+	var a = d.getMilliseconds();
+	var c;
+	for (var i = 0;i < 1000; ++i) {
+		JSON.parse(s);
+	}
+
+	console.log((new Date()).getMilliseconds() - a);
 	}
 	</script>
 </head>

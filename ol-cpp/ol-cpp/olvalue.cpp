@@ -64,4 +64,61 @@ namespace OL {
         return "null";
     }
     
+    Path::Path(Value* root) : _root(root) {
+        
+    }
+    
+    void Path::addKey(Value *key) {
+        _keys.push_back(ValuePtr(key));
+    }
+    
+    string Path::description() {
+        ostringstream s;
+        s << _root->description();
+        for (const auto& i : _keys) {
+            s << "[" << i->description() << "]";
+        }
+        return s.str();
+    }
+    
+    List::List(Value* head) : _head(head) {
+        
+    }
+    
+    void List::addItem(Value *item) {
+        _tail.push_back(ValuePtr(item));
+    }
+    
+    string List::description() {
+        ostringstream s;
+        s << _head->description() << "(";
+        auto i = _tail.begin();
+        if (i != _tail.end()) {
+            s << (*i)->description();
+            ++i;
+            while (i != _tail.end()) {
+                s << "," << (*i)->description();
+                ++i;
+            }
+        }
+        s << ")";
+        return s.str();
+    }
+    
+    Negative::Negative(Value* value) : _value(value) {
+        
+    }
+    
+    string Negative::description() {
+        return "!" + _value->description();
+    }
+    
+    Quote::Quote(Value* value) : _value(value) {
+        
+    }
+    
+    string Quote::description() {
+        return "#" + _value->description();
+    }
+    
 }
