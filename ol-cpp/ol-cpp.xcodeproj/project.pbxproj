@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4E873D851A54422600CDC7B1 /* olsource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E873D831A54422600CDC7B1 /* olsource.cpp */; };
+		4E873DD01A57CB2900CDC7B1 /* web.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4E873DCF1A57CB2900CDC7B1 /* web.mm */; };
 		4EBA3CD01A5392BF008D7840 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA3CCF1A5392BF008D7840 /* main.cpp */; };
 		4EBA3CD81A5392F1008D7840 /* olvalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA3CD61A5392F1008D7840 /* olvalue.cpp */; };
 		4EBA3CDB1A539603008D7840 /* oljson.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA3CD91A539603008D7840 /* oljson.cpp */; };
@@ -28,6 +29,7 @@
 /* Begin PBXFileReference section */
 		4E873D831A54422600CDC7B1 /* olsource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = olsource.cpp; sourceTree = "<group>"; };
 		4E873D841A54422600CDC7B1 /* olsource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = olsource.h; sourceTree = "<group>"; };
+		4E873DCF1A57CB2900CDC7B1 /* web.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = web.mm; sourceTree = "<group>"; };
 		4EBA3CCC1A5392BF008D7840 /* ol-cpp */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "ol-cpp"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4EBA3CCF1A5392BF008D7840 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		4EBA3CD61A5392F1008D7840 /* olvalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = olvalue.cpp; sourceTree = "<group>"; };
@@ -73,6 +75,7 @@
 				4EBA3CDA1A539603008D7840 /* oljson.h */,
 				4E873D831A54422600CDC7B1 /* olsource.cpp */,
 				4E873D841A54422600CDC7B1 /* olsource.h */,
+				4E873DCF1A57CB2900CDC7B1 /* web.mm */,
 			);
 			path = "ol-cpp";
 			sourceTree = "<group>";
@@ -133,6 +136,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E873DD01A57CB2900CDC7B1 /* web.mm in Sources */,
 				4EBA3CDB1A539603008D7840 /* oljson.cpp in Sources */,
 				4E873D851A54422600CDC7B1 /* olsource.cpp in Sources */,
 				4EBA3CD81A5392F1008D7840 /* olvalue.cpp in Sources */,

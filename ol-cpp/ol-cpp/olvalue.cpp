@@ -12,31 +12,62 @@
 using namespace std;
 
 namespace OL {
-    Number::Number(double value) : _value(value) {
-        
+    
+    Value::Value() : _type(Null) {}
+    
+    Value::Value(Value&& value) :_type(value._type), _array(value._array) {
+        value._type = Null;
     }
     
-    string Number::description() {
-        if ((int)_value == _value) {
-            return to_string((int)_value);
+    Value::~Value() {
+        switch (_type) {
+            case String:
+                delete _string;
+                break;
+            case Array:
+                delete _array;
+                break;
+            case Object:
+                delete _object;
+                break;
+            case Path:
+                delete _path;
+                break;
+            case List:
+                delete _path;
+                break;
+            case Negative:
+            case Quote:
+                delete _value;
+                break;
+            default:
+                ;
+        }
+        _type = Null;
+    }
+    
+    
+    string Value::descriptionNumber() {
+        if ((int)_number == _number) {
+            return to_string((int)_number);
         } else {
-            return to_string(_value);
+            return to_string(_number);
         }
     }
     
-    string String::description() {
-        return _value;
+    string Value::descriptionString() {
+        return *_string;
     }
     
-    string Array::description() {
+    string Value::descriptionArray() {
         ostringstream s;
         s << "[";
-        auto i = _value.begin();
-        if (i != _value.end()) {
-            s << (*i)->description();
+        auto i = _array->begin();
+        if (i != _array->end()) {
+            s << i->description();
             ++i;
-            while (i != _value.end()) {
-                s << "," << (*i)->description();
+            while (i != _array->end()) {
+                s << "," << i->description();
                 ++i;
             }
         }
@@ -44,60 +75,44 @@ namespace OL {
         return s.str();
     }
     
-    string Dictionary::description() {
+    string Value::descriptionObject() {
         ostringstream s;
         s << "{";
-        auto i = _value.begin();
-        if (i != _value.end()) {
-            s << i->first << ":" << i->second->description();
+        auto i = _object->begin();
+        if (i != _object->end()) {
+            s << i->first << ":" << i->second.description();
             ++i;
-            while (i != _value.end()) {
-                s << "," << i->first << ":" << i->second->description();
+            while (i != _object->end()) {
+                s << "," << i->first << ":" << i->second.description();
                 ++i;
             }
-        }
-        s << "}";
+        }        s << "}";
         return s.str();
     }
     
-    string Null::description() {
+    string Value::descriptionNull() {
         return "null";
     }
     
-    Path::Path(Value* root) : _root(root) {
-        
-    }
-    
-    void Path::addKey(Value *key) {
-        _keys.push_back(ValuePtr(key));
-    }
-    
-    string Path::description() {
+    string Value::descriptionPath() {
         ostringstream s;
-        s << _root->description();
-        for (const auto& i : _keys) {
-            s << "[" << i->description() << "]";
+        s << _path->first.description();
+        for (auto& i : _path->second) {
+            s << "[" << i.description() << "]";
         }
         return s.str();
     }
     
-    List::List(Value* head) : _head(head) {
-        
-    }
-    
-    void List::addItem(Value *item) {
-        _tail.push_back(ValuePtr(item));
-    }
-    
-    string List::description() {
+    string Value::descriptionList() {
         ostringstream s;
-        s << _head->description() << "(";
-        auto i = _tail.begin();
-        if (i != _tail.end()) {
-            s << (*i)->description();
+        s << _path->first.description() << "(";
+        auto& tail = _path->second;
+        auto i = tail.begin();
+        if (i != tail.end()) {
+            s << i->description();
             ++i;
-            while (i != _tail.end()) {
-                s << "," << (*i)->description();
+            while (i != tail.end()) {
+                s << "," << i->description();
                 ++i;
             }
         }
@@ -105,20 +120,43 @@ namespace OL {
         return s.str();
     }
     
-    Negative::Negative(Value* value) : _value(value) {
-        
-    }
-    
-    string Negative::description() {
+    string Value::descriptionNegative() {
         return "!" + _value->description();
     }
     
-    Quote::Quote(Value* value) : _value(value) {
-        
+    string Value::descriptionQuote() {
+        return "#" + _value->description();
     }
     
-    string Quote::description() {
-        return "#" + _value->description();
+    string Value::descriptionBool() {
+        return _bool ? "true" : "false";
+    }
+    
+    string Value::description() {
+        switch (_type) {
+            case Null:
+                return descriptionNull();
+            case Number:
+                return descriptionNumber();
+            case String:
+                return descriptionString();
+            case Array:
+                return descriptionArray();
+            case Object:
+                return descriptionObject();
+            case Path:
+                return descriptionPath();
+            case List:
+                return descriptionList();
+            case Negative:
+                return descriptionNegative();
+            case Quote:
+                return descriptionQuote();
+            case Bool:
+                return descriptionBool();
+            default:
+                return "";
+        }
     }
     
 }

@@ -15,82 +15,38 @@
 
 namespace OL {
     
-    enum ValueType {
-        
-    };
-    
-    class Value {        
+    class Value {
     public:
-        virtual ~Value() {}
-        virtual std::string description() = 0;
-    };
-    
-    typedef std::unique_ptr<Value> ValuePtr;
-    
-    class Number : public Value {
-    public:
-        Number(double value = 0);
-        double _value;
+        enum ValueType {
+            Null, Number, String, Bool, Array, Object, Path, List, Negative, Quote
+        };
+        Value();
+        ~Value();
         std::string description();
+        friend class JSON;
+        Value(const Value& value) = delete;
+        Value(Value&& value);
+    private:
+        ValueType _type;
+        std::string descriptionNull();
+        std::string descriptionNumber();
+        std::string descriptionString();
+        std::string descriptionBool();
+        std::string descriptionArray();
+        std::string descriptionObject();
+        std::string descriptionPath();
+        std::string descriptionList();
+        std::string descriptionNegative();
+        std::string descriptionQuote();
+        union {
+            double _number;
+            bool _bool;
+            std::string* _string;
+            std::vector<Value>* _array;
+            std::map<std::string, Value>* _object;
+            std::pair<Value, std::vector<Value>>* _path;
+            Value* _value;
+        };
     };
-    
-    class String : public Value {
-    public:
-        std::string _value;
-        std::string description();
-    };
-    
-    class Array : public Value {
-    public:
-        std::vector<ValuePtr> _value;
-        std::string description();
-
-    };
-    
-    class Dictionary : public Value {
-    public:
-        std::map<std::string, ValuePtr> _value;
-        std::string description();
-
-    };
-    
-    class Null : public Value {
-    public:
-        std::string description();
-    };
-    
-    class Path : public Value {
-        ValuePtr _root;
-        std::vector<ValuePtr> _keys;
-    public:
-        Path(Value* root);
-        void addKey(Value* key);
-        std::string description();
-    };
-    
-    class List : public Value {
-        ValuePtr _head;
-        std::vector<ValuePtr> _tail;
-    public:
-        List(Value* head);
-        void addItem(Value* item);
-        std::string description();
-    };
-    
-    class Negative : public Value {
-        ValuePtr _value;
-    public:
-        Negative(Value* value);
-        std::string description();
-    };
-    
-    class Quote : public Value {
-        ValuePtr _value;
-    public:
-        Quote(Value* value);
-        std::string description();
-    };
-    
-    
 }
 #endif /* defined(__ol_cpp__olvalue__) */

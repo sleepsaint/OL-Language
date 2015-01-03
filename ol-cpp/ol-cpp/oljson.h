@@ -15,24 +15,55 @@
 namespace OL {
 
     class JSON {
-        std::string _source;
-        size_t _cursor;
+        const char* _source;
+        const char* _end;
+        const char* _cursor;
         int _token;
-        std::string _tokenString;
+        enum {
+            STRING_TOKEN = 100000,
+            NUMBER_TOKEN,
+            BOOL_TOKEN,
+            NULL_TOKEN
+        };
+        const char* _tokenString;
+        double _tokenNumber;
+        bool _tokenBool;
     public:
-        JSON(const std::string& source);
-        Value* getValue();
+        static Value parse(const char* source, size_t length) {
+            JSON json(source, length);
+            Value value;
+            json.getValue(value);
+            return value;
+        }
+        static Value* parse2(const char* source, size_t length) {
+            JSON json(source, length);
+            Value* value = new Value;
+            json.getValue(*value);
+            return value;
+        }
     private:
-        int getToken();
-        bool match(int expected);
-        Dictionary* getDictionary();
-        Array* getArray();
-        Number* getNumber();
-        String* getString();
-        Value* getBool();
-        Value* getNull();
-        bool getKeyValue(std::unique_ptr<Dictionary>& dict);
-        bool getArrayValue(std::unique_ptr<Array>& array);
+        JSON(const char* source, size_t length);
+        void nextToken();
+        std::string unescape(const char* start, const char* end);
+        bool getValue(Value& value) {
+            return getString(value) || getNumber(value) || getObject(value) || getArray(value) || getBool(value) || getNull(value);
+        }
+        bool match(int expected) {
+            if (_token == expected) {
+                nextToken();
+                return true;
+            } else {
+                return false;
+            }
+        }
+        bool getObject(Value& value);
+        bool getArray(Value& value);
+        bool getNumber(Value& value);
+        bool getString(Value& value);
+        bool getBool(Value& value);
+        bool getNull(Value& value);
+        bool getPair(Value& object);
+        bool getElement(Value& array);
     };
 }
 
