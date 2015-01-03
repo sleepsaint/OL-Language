@@ -12,7 +12,7 @@ using namespace std;
 
 namespace OL {
     
-    JSON::JSON(const char* source, size_t length)
+    JSON::JSON(char* source, size_t length)
     : _source(source), _end(source + length), _cursor(source), _token(0) {
         nextToken();
     }
@@ -35,10 +35,8 @@ namespace OL {
                     _token = STRING_TOKEN;
                     ++_cursor;
                     _tokenString = _cursor;
-                    while (*_cursor != '"') {
-                        ++_cursor;
-                    }
-                    ++_cursor;
+                    _tokenStringEnd = _cursor;
+                    unescape();
                     break;
                 case 'n':
                     _token = NULL_TOKEN;
@@ -91,10 +89,9 @@ namespace OL {
     }
     
     bool JSON::getString(Value& value) {
-        auto end = _cursor - 1;
         if (match(STRING_TOKEN)) {
             value._type = Value::String;
-            value._string = new string(_tokenString, end - _tokenString);
+            value._string = new string(_tokenString, _tokenStringEnd - _tokenString);
             return true;
         }
         return false;
@@ -154,12 +151,8 @@ namespace OL {
     
     bool JSON::getPair(Value &object) {
         auto start = _tokenString;
-        auto end = _cursor - 1;
-        if (!match(STRING_TOKEN)) {
-            return false;
-        }
-        
-        if (match(':')) {
+        auto end = _tokenStringEnd;
+        if (match(STRING_TOKEN) && match(':')) {
             Value value;
             if (getValue(value)) {
                 object._object->insert(pair<string, Value>(string(start, end - start), move(value)));
@@ -176,6 +169,30 @@ namespace OL {
             return true;
         }
         return false;
+    }
+    
+    void JSON::unescape() {
+        while (_cursor < _end) {
+            auto c = *_cursor;
+            ++_cursor;
+            if (c == '\\') {
+                switch (*_cursor) {
+                    case 't':
+                        *_tokenStringEnd = '\t';
+                        ++_tokenStringEnd;
+                        ++_cursor;
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                if (c == '"') {
+                    return;
+                } else {
+                    ++_tokenStringEnd;
+                }
+            }
+        }
     }
     
  }

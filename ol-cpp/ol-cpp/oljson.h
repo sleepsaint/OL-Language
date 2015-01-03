@@ -15,9 +15,9 @@
 namespace OL {
 
     class JSON {
-        const char* _source;
-        const char* _end;
-        const char* _cursor;
+        char* _source;
+        char* _end;
+        char* _cursor;
         int _token;
         enum {
             STRING_TOKEN = 100000,
@@ -25,26 +25,27 @@ namespace OL {
             BOOL_TOKEN,
             NULL_TOKEN
         };
-        const char* _tokenString;
+        char* _tokenString;
+        char* _tokenStringEnd;
         double _tokenNumber;
         bool _tokenBool;
     public:
-        static Value parse(const char* source, size_t length) {
+        static Value parse(char* source, size_t length) {
             JSON json(source, length);
             Value value;
             json.getValue(value);
             return value;
         }
-        static Value* parse2(const char* source, size_t length) {
+        static Value* parse2(char* source, size_t length) {
             JSON json(source, length);
             Value* value = new Value;
             json.getValue(*value);
             return value;
         }
     private:
-        JSON(const char* source, size_t length);
+        JSON(char* source, size_t length);
         void nextToken();
-        std::string unescape(const char* start, const char* end);
+        void unescape();
         bool getValue(Value& value) {
             return getString(value) || getNumber(value) || getObject(value) || getArray(value) || getBool(value) || getNull(value);
         }
