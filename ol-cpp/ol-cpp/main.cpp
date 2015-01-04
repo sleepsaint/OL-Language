@@ -68,8 +68,8 @@ void test_json_parse() {
 
 int main(int argc, const char * argv[]) {
   
-    PP(test_json);
+ //   PP(test_json);
     //    test_parse();
-//   test_json_parse();
+   test_json_parse();
     return 0;
 }

@@ -173,26 +173,63 @@ namespace OL {
     
     void JSON::unescape() {
         while (_cursor < _end) {
-            auto c = *_cursor;
-            ++_cursor;
+            auto c = *_cursor++;
             if (c == '\\') {
-                switch (*_cursor) {
+                auto d = *_cursor++;
+                switch (d) {
+                    case '"':
+                        *_tokenStringEnd = '"';
+                        ++_tokenStringEnd;
+                        break;
+                    case '\\':
+                        *_tokenStringEnd  = '\\';
+                        ++_tokenStringEnd;
+                        break;
+                    case '/':
+                        *_tokenStringEnd = '/';
+                        ++_tokenStringEnd;
+                        break;
+                    case 'b':
+                        *_tokenStringEnd = '\b';
+                        ++_tokenStringEnd;
+                        break;
+                    case 'f':
+                        *_tokenStringEnd = '\f';
+                        ++_tokenStringEnd;
+                        break;
+                    case 'n':
+                        *_tokenStringEnd = '\n';
+                        ++_tokenStringEnd;
+                        break;
+                    case 'r':
+                        *_tokenStringEnd = '\r';
+                        ++_tokenStringEnd;
+                        break;
                     case 't':
                         *_tokenStringEnd = '\t';
                         ++_tokenStringEnd;
-                        ++_cursor;
+                        break;
+                    case 'u':
+                    {
+                        int hex = ((*_cursor - '0') << 24) | ((*(_cursor + 1) - '0') << 16) | ((*(_cursor + 2) - '0') << 8) | (*(_cursor + 3) - '0');
+                        _cursor += 4;
+                        
+                    }
+                        
                         break;
                     default:
-                        break;
+                        *_tokenStringEnd = d;
+                        ++_tokenStringEnd;
                 }
             } else {
                 if (c == '"') {
                     return;
                 } else {
+                    *_tokenStringEnd = c;
                     ++_tokenStringEnd;
                 }
             }
         }
     }
     
- }
+}
