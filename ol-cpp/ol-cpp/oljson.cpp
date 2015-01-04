@@ -6,8 +6,9 @@
 //  Copyright (c) 2014年 sleepsaint. All rights reserved.
 //
 
+#include <cstdlib>
 #include "oljson.h"
-#include <iostream>
+
 using namespace std;
 
 namespace OL {

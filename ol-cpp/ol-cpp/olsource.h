@@ -9,31 +9,49 @@
 #ifndef __ol_cpp__olsource__
 #define __ol_cpp__olsource__
 
-#include <string>
+#include "olbuffer.h"
 #include "olvalue.h"
 
 namespace OL {
     
     class Source {
-        std::string _source;
-        size_t _cursor;
-        std::string _token;
+        const char* _source;
+        const char* _end;
+        const char* _cursor;
+        int _token;
+        enum {
+            STRING_TOKEN = 100000,
+            NUMBER_TOKEN
+        };
+        Buffer _tokenString;
+        double _tokenNumber;
+        bool _tokenBool;
         std::string _errorLog;
     public:
-        Source(const std::string& source);
-        std::string getToken();
-    private:
-        bool match(const std::string& expected);
+        Source(const char* source, size_t length);
+//    private:
+        void nextToken();
+        void unescape();
+        bool match(int expected) {
+            if (_token == expected) {
+                nextToken();
+                return true;
+            } else {
+                return false;
+            }
+        }
         void error(const std::string& e);
-        Value* getLiteral();
-        Value* getPath();
-        Value* getString();
-        Value* getKey();
-        Value* getFragment();
-        Value* getList();
-        Value* getNegative();
-        Value* getQuote();
-        Value* getValue();
+        bool getNumber(Value& value);
+        bool getString(Value& value);
+        bool getPath(Value& value);
+        bool getKey(std::vector<Value>& v);
+        bool getFragment(Value& value);
+        bool getList(Value& value);
+        bool getNegative(Value& value);
+        bool getQuote(Value& value);
+        bool getValue(Value& value) {
+            return getString(value) || getNumber(value) || getPath(value) || getList(value) || getNegative(value) || getQuote(value);
+        }
     };
 }
 

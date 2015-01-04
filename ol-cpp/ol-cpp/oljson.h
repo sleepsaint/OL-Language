@@ -9,9 +9,8 @@
 #ifndef __ol_cpp__oljson__
 #define __ol_cpp__oljson__
 
-#include <string>
-#include "olvalue.h"
 #include "olbuffer.h"
+#include "olvalue.h"
 
 namespace OL {
 

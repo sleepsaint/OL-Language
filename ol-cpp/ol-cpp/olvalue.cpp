@@ -31,10 +31,8 @@ namespace OL {
                 delete _object;
                 break;
             case Path:
-                delete _path;
-                break;
             case List:
-                delete _path;
+                delete _pair;
                 break;
             case Negative:
             case Quote:
@@ -57,6 +55,10 @@ namespace OL {
     
     string Value::descriptionString() {
         return *_string;
+    }
+    
+    string Value::descriptionChar() {
+        return string(1, _char);
     }
     
     string Value::descriptionArray() {
@@ -96,8 +98,8 @@ namespace OL {
     
     string Value::descriptionPath() {
         ostringstream s;
-        s << _path->first.description();
-        for (auto& i : _path->second) {
+        s << _pair->first.description();
+        for (auto& i : _pair->second) {
             s << "[" << i.description() << "]";
         }
         return s.str();
@@ -105,8 +107,8 @@ namespace OL {
     
     string Value::descriptionList() {
         ostringstream s;
-        s << _path->first.description() << "(";
-        auto& tail = _path->second;
+        s << _pair->first.description() << "(";
+        auto& tail = _pair->second;
         auto i = tail.begin();
         if (i != tail.end()) {
             s << i->description();
@@ -136,6 +138,8 @@ namespace OL {
         switch (_type) {
             case Null:
                 return descriptionNull();
+            case Char:
+                return descriptionChar();
             case Number:
                 return descriptionNumber();
             case String:

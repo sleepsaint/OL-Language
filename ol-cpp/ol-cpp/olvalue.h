@@ -18,17 +18,19 @@ namespace OL {
     class Value {
     public:
         enum ValueType {
-            Null, Number, String, Bool, Array, Object, Path, List, Negative, Quote
+            Null, Char, Number, String, Bool, Array, Object, Path, List, Negative, Quote
         };
         Value();
         ~Value();
         std::string description();
         friend class JSON;
+        friend class Source;
         Value(const Value& value) = delete;
         Value(Value&& value);
     private:
         ValueType _type;
         std::string descriptionNull();
+        std::string descriptionChar();
         std::string descriptionNumber();
         std::string descriptionString();
         std::string descriptionBool();
@@ -41,10 +43,11 @@ namespace OL {
         union {
             double _number;
             bool _bool;
+            char _char;
             std::string* _string;
             std::vector<Value>* _array;
             std::map<std::string, Value>* _object;
-            std::pair<Value, std::vector<Value>>* _path;
+            std::pair<Value, std::vector<Value>>* _pair;
             Value* _value;
         };
     };

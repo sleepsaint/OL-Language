@@ -29,10 +29,10 @@ void test_parse() {
     };
     
     for (const auto& i : test) {
-        OL::Source s(i);
-        for (auto t = s.getToken(); t.length() > 0; t = s.getToken()) {
-            cout << t << endl;
-        }
+        OL::Source s(i.c_str(), i.length());
+        OL::Value value;
+        s.getValue(value);
+        cout << value.description() << endl;
     }
     
 }
@@ -68,7 +68,7 @@ void test_json_parse() {
 int main(int argc, const char * argv[]) {
   
 //    PP(test_json);
-    //    test_parse();
-   test_json_parse();
+        test_parse();
+//   test_json_parse();
     return 0;
 }

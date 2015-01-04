@@ -6,6 +6,7 @@
 //  Copyright (c) 2014年 sleepsaint. All rights reserved.
 //
 
+#include <cstdlib>
 #include "olsource.h"
 
 using namespace std;
@@ -16,74 +17,240 @@ namespace OL {
         None, String, Number
     };
     
-    Source::Source(const string& source) : _source(source), _cursor(0) {
-        _token = getToken();
+    Source::Source(const char* source, size_t length)
+    : _source(source), _end(source + length), _cursor(source), _token(0) {
+        nextToken();
     }
     
-    string Source::getToken() {
-        auto start = _cursor;
-        auto status = None;
-        auto end = _source.length();
-        for (auto i = _cursor; i < end; ++i) {
-            auto c = _source[i];
+    void Source::nextToken() {
+        if (_cursor < _end) {
+            auto c = *_cursor;
+            const char* start;
             switch (c) {
+                case '^':
+                case '@':
                 case '~':
                 case '!':
-                case '@':
-                case '^':
-                case '(':
-                case ')':
                 case '{':
                 case '}':
+                case '(':
+                case ')':
                 case ',':
                 case '#':
-                    if (status == None) {
-                        ++_cursor;
-                        return string(1, c);
-                    } else {
-                        _cursor = i;
-                        return _source.substr(start, _cursor - start);
-                    }
                 case '.':
-                    if (status == None) {
-                        ++_cursor;
-                        return ".";
-                    } else if (status == String) {
-                        _cursor = i;
-                        return _source.substr(start, _cursor - start);
-                    }
-                    break;
-                case ' ':
+                    _token = c;
                     ++_cursor;
                     break;
+                case '\n':
+                case ' ':
+                    ++_cursor;
+                    nextToken();
+                    break;
                 case '$':
-                    if (status == None) {
-                        start = _cursor;
-                        status = Number;
+                    _token = NUMBER_TOKEN;
+                    ++_cursor;
+                    start = _cursor;
+                    while (_cursor < _end) {
+                        switch (*_cursor) {
+                            case '^':
+                            case '@':
+                            case '~':
+                            case '!':
+                            case '{':
+                            case '}':
+                            case '(':
+                            case ')':
+                            case ',':
+                            case '#':
+                            case '\n':
+                            case ' ':
+                            case '$':
+                                goto PP;
+                            default:
+                                ++_cursor;
+                        }
                     }
+                PP: _tokenNumber = atof(start);
                     break;
                 default:
-                    if (status == None) {
-                        start = _cursor;
-                        status = String;
+                    _token = STRING_TOKEN;
+                    unescape();
+            }
+        } else {
+            _token = 0;
+        }
+    }
+    void Source::unescape() {
+        _tokenString.reset();
+        while (_cursor < _end) {
+            auto c = *_cursor;
+            char d;
+            switch (c) {
+                case '^':
+                case '@':
+                case '~':
+                case '!':
+                case '{':
+                case '}':
+                case '(':
+                case ')':
+                case ',':
+                case '#':
+                case '.':
+                case '$':
+                    return;
+                case '\\':
+                    ++_cursor;
+                    d = *_cursor;
+                    switch (d) {
+                        case '"':
+                            _tokenString.append('"');
+                            break;
+                        case '\\':
+                            _tokenString.append('\\');
+                            break;
+                        case '/':
+                            _tokenString.append('/');
+                            break;
+                        case 'b':
+                            _tokenString.append('\b');
+                            break;
+                        case 'f':
+                            _tokenString.append('\f');
+                            break;
+                        case 'n':
+                            _tokenString.append('\n');
+                            break;
+                        case 'r':
+                            _tokenString.append('\r');
+                            break;
+                        case 't':
+                            _tokenString.append('\t');
+                            break;
+                        default:
+                            _tokenString.append(d);
                     }
+                    ++_cursor;
+                    break;
+                default:
+                    _tokenString.append(c);
+                    ++_cursor;
                     break;
             }
         }
-        _cursor = end;
-        return (start == end || status == None) ? "" : _source.substr(start);
     }
     
-    bool Source::match(const std::string &expected) {
-        if (_token == expected) {
-            _token = getToken();
+    void Source::error(const std::string &e) {
+        
+    }
+    
+    bool Source::getNumber(Value& value) {
+        if (match(NUMBER_TOKEN)) {
+            value._type = Value::Number;
+            value._number = _tokenNumber;
+            return true;
+        }
+        return false;
+    }
+    
+    bool Source::getString(Value& value) {
+        if (match(STRING_TOKEN)) {
+            value._type = Value::String;
+            value._string = new string(_tokenString.begin(), _tokenString.end());
+            return true;
+        }
+        return false;
+    }
+    
+    bool Source::getPath(Value &value) {
+        int token = _token;
+        if (match('^') || match('~') || match('@')) {
+            value._type = Value::Path;
+            value._pair = new pair<Value, vector<Value>>;
+            value._pair->first._type = Value::Char;
+            value._pair->first._char = token;
+            while (match('.')) {
+                if (!getKey(value._pair->second)) {
+                    error("can not match a key");
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+    
+    bool Source::getKey(std::vector<Value> &v) {
+        Value value;
+        if (getString(value) || getFragment(value) || getList(value)) {
+            v.push_back(move(value));
             return true;
         } else {
             return false;
         }
     }
     
+    bool Source::getFragment(Value &value) {
+        if (match('{')) {
+            if (getPath(value)) {
+                if (match('}')) {
+                    return true;
+                } else {
+                    error("can not match }");
+                }
+            } else {
+                error("in {} must a path");
+            }
+        }
+        return false;
+    }
     
+    bool Source::getList(Value &value) {
+        if (match('(')) {
+            value._type = Value::List;
+            value._pair = new pair<Value, vector<Value>>;
+            if (getValue(value._pair->first)) {
+                while (match(',')) {
+                    Value item;
+                    if (getValue(item)) {
+                        value._pair->second.push_back(move(item));
+                    } else {
+                        error("tail can not match a value");
+                        return false;
+                    }
+                }
+                if (match(')')) {
+                    return true;
+                } else {
+                    error("can not match )");
+                }
+            }
+        }
+        return false;
+    }
     
+    bool Source::getNegative(Value &value) {
+        if (match('!')) {
+            value._type = Value::Negative;
+            value._value = new Value;
+            if (getValue(*value._value)) {
+                return true;
+            } else {
+                error("can not match value for !");
+            }
+        }
+        return false;
+    }
     
+    bool Source::getQuote(Value &value) {
+        if (match('#')) {
+            value._type = Value::Quote;
+            value._value = new Value;
+            if (getValue(*value._value)) {
+                return true;
+            } else {
+                error("can not match value for #");
+            }
+        }
+        return false;
+    }
 }
