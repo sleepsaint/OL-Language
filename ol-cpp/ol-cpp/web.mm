@@ -7,11 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <string>
 
-void* getJSON(size_t& length) {
+std::string getJSON() {
     NSData* s = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"http://localhost/a.php"]];
-    length = s.length;
-    void* ret = malloc(length);
-    [s getBytes:ret length:length];
-    return ret;
+    return std::string((char*)s.bytes, s.length);
 }

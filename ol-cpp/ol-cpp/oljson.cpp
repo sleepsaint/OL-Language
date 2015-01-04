@@ -12,7 +12,7 @@ using namespace std;
 
 namespace OL {
     
-    JSON::JSON(char* source, size_t length)
+    JSON::JSON(const char* source, size_t length)
     : _source(source), _end(source + length), _cursor(source), _token(0) {
         nextToken();
     }
@@ -34,8 +34,6 @@ namespace OL {
                 case '"':
                     _token = STRING_TOKEN;
                     ++_cursor;
-                    _tokenString = _cursor;
-                    _tokenStringEnd = _cursor;
                     unescape();
                     break;
                 case 'n':
@@ -91,7 +89,7 @@ namespace OL {
     bool JSON::getString(Value& value) {
         if (match(STRING_TOKEN)) {
             value._type = Value::String;
-            value._string = new string(_tokenString, _tokenStringEnd - _tokenString);
+            value._string = new string(_tokenString.begin(), _tokenString.end());
             return true;
         }
         return false;
@@ -150,12 +148,11 @@ namespace OL {
     }
     
     bool JSON::getPair(Value &object) {
-        auto start = _tokenString;
-        auto end = _tokenStringEnd;
+        string key(_tokenString.begin(), _tokenString.end());
         if (match(STRING_TOKEN) && match(':')) {
             Value value;
             if (getValue(value)) {
-                object._object->insert(pair<string, Value>(string(start, end - start), move(value)));
+                object._object->insert(pair<string, Value>(key, move(value)));
                 return true;
             }
         }
@@ -184,74 +181,62 @@ namespace OL {
     }
     
     void JSON::unescape() {
+        _tokenString.reset();
         while (_cursor < _end) {
             auto c = *_cursor++;
             if (c == '\\') {
                 auto d = *_cursor++;
                 switch (d) {
                     case '"':
-                        *_tokenStringEnd = '"';
-                        ++_tokenStringEnd;
+                        _tokenString.append('"');
                         break;
                     case '\\':
-                        *_tokenStringEnd  = '\\';
-                        ++_tokenStringEnd;
+                        _tokenString.append('\\');
                         break;
                     case '/':
-                        *_tokenStringEnd = '/';
-                        ++_tokenStringEnd;
+                        _tokenString.append('/');
                         break;
                     case 'b':
-                        *_tokenStringEnd = '\b';
-                        ++_tokenStringEnd;
+                        _tokenString.append('\b');
                         break;
                     case 'f':
-                        *_tokenStringEnd = '\f';
-                        ++_tokenStringEnd;
+                        _tokenString.append('\f');
                         break;
                     case 'n':
-                        *_tokenStringEnd = '\n';
-                        ++_tokenStringEnd;
+                        _tokenString.append('\n');
                         break;
                     case 'r':
-                        *_tokenStringEnd = '\r';
-                        ++_tokenStringEnd;
+                        _tokenString.append('\r');
                         break;
                     case 't':
-                        *_tokenStringEnd = '\t';
-                        ++_tokenStringEnd;
+                        _tokenString.append('\t');
                         break;
                     case 'u':
                     {
                         int hex = (char_to_num(_cursor[0]) << 12) | (char_to_num(_cursor[1]) << 8) | (char_to_num(_cursor[2]) << 4) | char_to_num(_cursor[3]);
                         _cursor += 4;
                         if (hex < 0x80) {
-                            _tokenStringEnd[0] = hex;
-                            ++_tokenStringEnd;
+                            _tokenString.append(hex);
                         } else if (hex < 0x800) {
-                            _tokenStringEnd[0] = 0xc0 | (hex >> 6);
-                            _tokenStringEnd[1] = 0x80 | (hex & 0x3f);
-                            _tokenStringEnd += 2;
+                            _tokenString.append(0xc0 | (hex >> 6));
+                            _tokenString.append(0x80 | (hex & 0x3f));
                         } else if (hex < 0x10000) {
-                            _tokenStringEnd[0] = 0xe0 | (hex >> 12);
-                            _tokenStringEnd[1] = 0x80 | ((hex >> 6) & 0x3f);
-                            _tokenStringEnd[2] = 0x80 | (hex & 0x3f);
-                            _tokenStringEnd += 3;
+                            _tokenString.append(0xe0 | (hex >> 12));
+                            _tokenString.append(0x80 | ((hex >> 6) & 0x3f));
+                            _tokenString.append(0x80 | (hex & 0x3f));
                         }
                         
                     }
                         
                         break;
                     default:
-                        *_tokenStringEnd = d;
-                        ++_tokenStringEnd;
+                        _tokenString.append(d);
                 }
             } else {
                 if (c == '"') {
                     return;
                 } else {
-                    *_tokenStringEnd = c;
-                    ++_tokenStringEnd;
+                    _tokenString.append(c);
                 }
             }
         }

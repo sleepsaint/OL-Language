@@ -11,13 +11,14 @@
 
 #include <string>
 #include "olvalue.h"
+#include "olbuffer.h"
 
 namespace OL {
 
     class JSON {
-        char* _source;
-        char* _end;
-        char* _cursor;
+        const char* _source;
+        const char* _end;
+        const char* _cursor;
         int _token;
         enum {
             STRING_TOKEN = 100000,
@@ -25,25 +26,24 @@ namespace OL {
             BOOL_TOKEN,
             NULL_TOKEN
         };
-        char* _tokenString;
-        char* _tokenStringEnd;
+        Buffer _tokenString;
         double _tokenNumber;
         bool _tokenBool;
     public:
-        static Value parse(char* source, size_t length) {
+        static Value parse(const char* source, size_t length) {
             JSON json(source, length);
             Value value;
             json.getValue(value);
             return value;
         }
-        static Value* parse2(char* source, size_t length) {
+        static Value* parse2(const char* source, size_t length) {
             JSON json(source, length);
             Value* value = new Value;
             json.getValue(*value);
             return value;
         }
     private:
-        JSON(char* source, size_t length);
+        JSON(const char* source, size_t length);
         void nextToken();
         void unescape();
         bool getValue(Value& value) {

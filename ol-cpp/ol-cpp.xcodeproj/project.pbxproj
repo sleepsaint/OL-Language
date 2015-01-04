@@ -36,6 +36,7 @@
 		4EBA3CD71A5392F1008D7840 /* olvalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = olvalue.h; sourceTree = "<group>"; };
 		4EBA3CD91A539603008D7840 /* oljson.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oljson.cpp; sourceTree = "<group>"; };
 		4EBA3CDA1A539603008D7840 /* oljson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oljson.h; sourceTree = "<group>"; };
+		4EBA3CDD1A592293008D7840 /* olbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = olbuffer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +77,7 @@
 				4E873D831A54422600CDC7B1 /* olsource.cpp */,
 				4E873D841A54422600CDC7B1 /* olsource.h */,
 				4E873DCF1A57CB2900CDC7B1 /* web.mm */,
+				4EBA3CDD1A592293008D7840 /* olbuffer.h */,
 			);
 			path = "ol-cpp";
 			sourceTree = "<group>";
