@@ -171,6 +171,18 @@ namespace OL {
         return false;
     }
     
+    inline int char_to_num(char c) {
+        if (c >= '0' && c <= '9') {
+            return c - '0';
+        } else if (c >= 'a' && c <= 'f') {
+            return c - 'a' + 10;
+        } else if (c >= 'A' && c <= 'F') {
+            return c - 'A' + 10;
+        } else {
+            return 0;
+        }
+    }
+    
     void JSON::unescape() {
         while (_cursor < _end) {
             auto c = *_cursor++;
@@ -211,8 +223,21 @@ namespace OL {
                         break;
                     case 'u':
                     {
-                        int hex = ((*_cursor - '0') << 24) | ((*(_cursor + 1) - '0') << 16) | ((*(_cursor + 2) - '0') << 8) | (*(_cursor + 3) - '0');
+                        int hex = (char_to_num(_cursor[0]) << 12) | (char_to_num(_cursor[1]) << 8) | (char_to_num(_cursor[2]) << 4) | char_to_num(_cursor[3]);
                         _cursor += 4;
+                        if (hex < 0x80) {
+                            _tokenStringEnd[0] = hex;
+                            ++_tokenStringEnd;
+                        } else if (hex < 0x800) {
+                            _tokenStringEnd[0] = 0xc0 | (hex >> 6);
+                            _tokenStringEnd[1] = 0x80 | (hex & 0x3f);
+                            _tokenStringEnd += 2;
+                        } else if (hex < 0x10000) {
+                            _tokenStringEnd[0] = 0xe0 | (hex >> 12);
+                            _tokenStringEnd[1] = 0x80 | ((hex >> 6) & 0x3f);
+                            _tokenStringEnd[2] = 0x80 | (hex & 0x3f);
+                            _tokenStringEnd += 3;
+                        }
                         
                     }
                         
