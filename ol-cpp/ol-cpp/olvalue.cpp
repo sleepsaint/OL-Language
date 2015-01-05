@@ -9,72 +9,31 @@
 #include <iostream>
 #include <sstream>
 #include "olvalue.h"
+#include "olsource.h"
 
 using namespace std;
 
 namespace OL {
     
-    Value::Value() : _type(Null) {}
     
-    Value::Value(Value&& value) :_type(value._type), _array(value._array) {
-        value._type = Null;
-    }
-    
-    Value::Value(Value* pointer) : _type(Pointer), _value(pointer) {}
-    
-    Value::Value(bool b) : _type(Bool), _bool(b) {}
-    
-    Value::~Value() {
-        switch (_type) {
-            case String:
-                delete _string;
-                break;
-            case Array:
-                delete _array;
-                break;
-            case Object:
-                delete _object;
-                break;
-            case Path:
-            case List:
-                delete _pair;
-                break;
-            case Negative:
-            case Quote:
-                delete _value;
-                break;
-            default:
-                ;
-        }
-        _type = Null;
-    }
-    
-    
-    string Value::descriptionNumber() {
-        if ((int)_number == _number) {
-            return to_string((int)_number);
+    string Number::description() {
+        if ((int)_value == _value) {
+            return to_string((int)_value);
         } else {
-            return to_string(_number);
+            return to_string(_value);
         }
     }
     
-    string Value::descriptionString() {
-        return *_string;
-    }
     
-    string Value::descriptionChar() {
-        return string(1, _char);
-    }
-    
-    string Value::descriptionArray() {
+    string Array::description() {
         ostringstream s;
         s << "[";
-        auto i = _array->begin();
-        if (i != _array->end()) {
-            s << i->description();
+        auto i = _value.begin();
+        if (i != _value.end()) {
+            s << (*i)->description();
             ++i;
-            while (i != _array->end()) {
-                s << "," << i->description();
+            while (i != _value.end()) {
+                s << "," << (*i)->description();
                 ++i;
             }
         }
@@ -82,44 +41,40 @@ namespace OL {
         return s.str();
     }
     
-    string Value::descriptionObject() {
+    string Object::description() {
         ostringstream s;
         s << "{";
-        auto i = _object->begin();
-        if (i != _object->end()) {
-            s << i->first << ":" << i->second.description();
+        auto i = _value.begin();
+        if (i != _value.end()) {
+            s << i->first << ":" << i->second->description();
             ++i;
-            while (i != _object->end()) {
-                s << "," << i->first << ":" << i->second.description();
+            while (i != _value.end()) {
+                s << "," << i->first << ":" << i->second->description();
                 ++i;
             }
-        }        s << "}";
+        }
+        s << "}";
         return s.str();
     }
     
-    string Value::descriptionNull() {
-        return "null";
-    }
-    
-    string Value::descriptionPath() {
+    string Path::description() {
         ostringstream s;
-        s << _pair->first.description();
-        for (auto& i : _pair->second) {
-            s << "[" << i.description() << "]";
+        s << _root;
+        for (auto& i : _keys) {
+            s << "[" << i->description() << "]";
         }
         return s.str();
     }
     
-    string Value::descriptionList() {
+    string List::description() {
         ostringstream s;
-        s << _pair->first.description() << "(";
-        auto& tail = _pair->second;
-        auto i = tail.begin();
-        if (i != tail.end()) {
-            s << i->description();
+        s << _head->description() << "(";
+        auto i = _tail.begin();
+        if (i != _tail.end()) {
+            s << (*i)->description();
             ++i;
-            while (i != tail.end()) {
-                s << "," << i->description();
+            while (i != _tail.end()) {
+                s << "," << (*i)->description();
                 ++i;
             }
         }
@@ -127,149 +82,41 @@ namespace OL {
         return s.str();
     }
     
-    string Value::descriptionNegative() {
-        return "!" + _value->description();
+    string Bool::description() {
+        return _value ? "true" : "false";
     }
     
-    string Value::descriptionQuote() {
-        return "#" + _value->description();
-    }
-    
-    string Value::descriptionBool() {
-        return _bool ? "true" : "false";
-    }
-    
-    string Value::description() {
-        switch (_type) {
-            case Null:
-                return descriptionNull();
-            case Char:
-                return descriptionChar();
-            case Number:
-                return descriptionNumber();
-            case String:
-                return descriptionString();
-            case Array:
-                return descriptionArray();
-            case Object:
-                return descriptionObject();
-            case Path:
-                return descriptionPath();
-            case List:
-                return descriptionList();
-            case Negative:
-                return descriptionNegative();
-            case Quote:
-                return descriptionQuote();
-            case Bool:
-                return descriptionBool();
-            case Pointer:
-                return _value->description();
-            default:
-                return "";
-        }
-    }
-    
-    Value::operator bool () {
-        switch (_type) {
-            case Null:
-                return false;
-            case Char:
-                return _char != 0;
-            case Number:
-                return _number != 0;
-            case String:
-                return !_string->empty();
-            case Array:
-                return !_array->empty();
-            case Object:
-                return !_object->empty();
-            case Path:
-            case List:
-            case Negative:
-            case Quote:
-                return true;
-            case Bool:
-                return _bool;
-            default:
-                return false;
-        }
-        
-    }
-    
-    static Value NullValue;
-    
-    Value& Value::at(const Value& key) {
-        Value* container = this->_type == Pointer ? _value : this;
-        const Value* index = key._type == Pointer ? key._value : &key;
-        switch (container->_type) {
-            case Array:
-                switch (index->_type) {
-                    case Number:
-                        if ( index->_number < container->_array->size()) {
-                            return container->_array->at(index->_number);
-                        }
-                    default:
-                        break;
-                }
-                break;
-            case Object:
-                switch (index->_type) {
-                    case String:
-                        return container->_object->at(*index->_string);
- 
-                    default:
-                        break;
-                }
-                break;
-            default:
-                break;
-        }
-        return NullValue;
-    }
-    
-    Value Value::lookup(Value& root, Value& temp, Value& now) {
-        switch (_type) {
-            case Null:
-            case Char:
-            case Number:
-            case Bool:
-            case String:
-            case Array:
-            case Object:
-                return this;
-            case Path:
-                return lookupPath(root, temp, now);
-                //            case List:
-                //                return descriptionList();
-            case Negative:
-                return !(*this);
-            case Quote:
-                return _value;
-            default:
-                return Value();
-        }
-    }
-    
-    Value Value::lookupPath(Value &root, Value &temp, Value &now) {
-        Value* current;
-        switch (_pair->first._char) {
+    ValuePtr Path::lookup(ValuePtr root, ValuePtr temp, ValuePtr now) {
+        ValuePtr current;
+        switch (_root) {
             case '^':
-                current = &root;
+                current = root;
                 break;
             case '~':
-                current = &temp;
+                current = temp;
                 break;
             case '@':
-                current = &now;
+                current = now;
                 break;
             default:
-                return Value();
+                return nullptr;
         }
-        for (auto& key : _pair->second) {
-            Value k = key.lookup(root, temp, now);
-            current = &current->at(k);
+        for (auto& k : _keys) {
+            auto key = k->lookup(root, temp, now);
+            if (key && current) {
+//                current = (*current)[key->description()];
+            } else {
+                return nullptr;
+            }
         }
-        return current;
+        return nullptr;
+    }
+    
+    ValuePtr List::lookup(ValuePtr root, ValuePtr temp, ValuePtr now) {
+        return nullptr;
+    }
+    
+    ValuePtr Negative::lookup(ValuePtr root, ValuePtr temp, ValuePtr now) {
+        return nullptr;
     }
 }

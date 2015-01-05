@@ -149,126 +149,113 @@ namespace OL {
         }
     }
     
-    bool Source::getNumber(Value& value) {
+    class Number* Source::getNumber() {
         if (match(NUMBER_TOKEN)) {
-            value._type = Value::Number;
-            value._number = _tokenNumber;
-            return true;
+            return new class Number(_tokenNumber);
         }
-        return false;
+        return nullptr;
     }
     
-    bool Source::getString(Value& value) {
+    class String* Source::getString() {
         if (match(STRING_TOKEN)) {
-            value._type = Value::String;
-            value._string = new string(_tokenString.begin(), _tokenString.end());
-            return true;
+            return new class String(_tokenString.begin(), _tokenString.end());
         }
-        return false;
+        return nullptr;
     }
     
-    bool Source::getPath(Value &value) {
+    Path* Source::getPath() {
         int token = _token;
         if (match('^') || match('~') || match('@')) {
-            value._type = Value::Path;
-            value._pair = new pair<Value, vector<Value>>;
-            value._pair->first._type = Value::Char;
-            value._pair->first._char = token;
+            Path* path = new Path(token);
             while (match('.')) {
-                if (!getKey(value._pair->second)) {
+                Value* key;
+                if ((key = getKey())) {
+                    path->append(key);
+                } else {
                     error("can not match a key");
-                    return false;
+                    delete path;
+                    return nullptr;
                 }
             }
-            return true;
+            return path;
         }
-        return false;
+        return nullptr;
     }
     
-    bool Source::getKey(std::vector<Value> &v) {
-        Value value;
-        if (getString(value) || getFragment(value) || getList(value)) {
-            v.push_back(move(value));
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    bool Source::getFragment(Value &value) {
+    Path* Source::getFragment() {
         if (match('{')) {
-            if (getPath(value)) {
+            Path* path;
+            if ((path = getPath())) {
                 if (match('}')) {
-                    return true;
+                    return path;
                 } else {
+                    delete path;
                     error("can not match }");
                 }
             } else {
                 error("in {} must a path");
             }
         }
-        return false;
+        return nullptr;
     }
     
-    bool Source::getList(Value &value) {
+    List* Source::getList() {
         if (match('(')) {
-            value._type = Value::List;
-            value._pair = new pair<Value, vector<Value>>;
-            if (getValue(value._pair->first)) {
+            Value* head;
+            if ((head = getValue())) {
+                List* list = new List(head);
                 while (match(',')) {
-                    Value item;
-                    if (getValue(item)) {
-                        value._pair->second.push_back(move(item));
+                    Value* item;
+                    if ((item = getValue())) {
+                        list->append(item);
                     } else {
                         error("tail can not match a value");
-                        return false;
+                        delete list;
+                        return nullptr;
                     }
                 }
                 if (match(')')) {
-                    return true;
+                    return list;
                 } else {
+                    delete list;
                     error("can not match )");
                 }
             }
         }
-        return false;
+        return nullptr;
     }
     
-    bool Source::getNegative(Value &value) {
+    Negative* Source::getNegative() {
         if (match('!')) {
-            value._type = Value::Negative;
-            value._value = new Value;
-            if (getValue(*value._value)) {
-                return true;
+            Value* value;
+            if ((value = getValue())) {
+                return new Negative(value);
             } else {
                 error("can not match value for !");
             }
         }
-        return false;
+        return nullptr;
     }
     
-    bool Source::getQuote(Value &value) {
+    Quote* Source::getQuote() {
         if (match('#')) {
-            value._type = Value::Quote;
-            value._value = new Value;
-            if (getValue(*value._value)) {
-                return true;
+            Value* value;
+            if ((value = getValue())) {
+                return new Quote(value);
             } else {
                 error("can not match value for #");
             }
         }
-        return false;
+        return nullptr;
     }
     
-    Value Source::parse(const char *source, size_t length) {
-        Value value;
-        Source s(source, length);
-        if (s.getValue(value)) {
-            return value;
-        } else {
-            cout << "parse error: " << string(source, length) << endl;
+    ValuePtr Source::parse(const char *source, size_t length) {
+        Source s = Source(source, length);
+        auto ret = ValuePtr(s.getValue());
+        if (!ret) {
+            cout << string(source, length) << endl;
             cout << s._errorLog << endl;
-            return Value();
         }
+        return ret;
     }
 }

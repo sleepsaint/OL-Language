@@ -29,9 +29,9 @@ void test_parse() {
     };
     
     for (const auto& i : test) {
-        OL::Value value = OL::Source::parse(i.c_str(), i.length());
-        if (!value.isNull()) {
-            cout << value.description() << endl;
+        auto value = OL::Source::parse(i.c_str(), i.length());
+        if (value) {
+            cout << value->description() << endl;
         }
     }
     
@@ -45,7 +45,7 @@ void test_lookup() {
     using namespace OL;
     vector<string> test = {
         "^.wear.{^.person.{~.person}.wear.hat}.price",
-        "^.wear.{~.person2.wear.hat}.price",
+//        "^.wear.{~.person2.wear.hat}.price",
 //        "~.personwear.price",
 //        "(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
 //        "(filter, ^.wear, #(>, @.price, $150))",
@@ -63,14 +63,23 @@ void test_lookup() {
 //        "(random, $5)",
 //        "(random, $-5, $-3)"
     };
-    OL::Value root_json = JSON::parse(root.c_str(), root.length());
-    Value temp_json = JSON::parse(temp.c_str(), temp.length());
+    auto root_json = JSON::parse(root.c_str(), root.length());
+    auto temp_json = JSON::parse(temp.c_str(), temp.length());
     for (const auto& i : test) {
-        OL::Value value = OL::Source::parse(i.c_str(), i.length()).lookup(root_json, temp_json, root_json);
-        cout << i << endl;
-        cout << value.description() << endl;
+        auto value = Source::parse(i.c_str(), i.length());
+        auto value2 = value->lookup(root_json, temp_json, root_json);
+//        if (value2) {
+//            cout << i << endl;
+//            cout << value2->description() << endl;
+//
+//        }
     }
     
+}
+
+void test_parse_json() {
+    auto json = OL::JSON::parse(root.c_str(), root.length());
+    cout << json->description() << endl;
 }
 
 
@@ -78,5 +87,6 @@ int main(int argc, const char * argv[]) {
   
 //        test_parse();
     test_lookup();
+//    test_parse_json();
     return 0;
 }

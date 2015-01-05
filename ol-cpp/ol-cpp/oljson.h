@@ -29,18 +29,30 @@ namespace OL {
         double _tokenNumber;
         bool _tokenBool;
     public:
-        static Value parse(const char* source, size_t length) {
-            JSON json(source, length);
-            Value value;
-            json.getValue(value);
-            return value;
+        static ValuePtr parse(const char* source, size_t length) {
+            return ValuePtr(JSON(source, length).getValue());
         }
     private:
         JSON(const char* source, size_t length);
         void nextToken();
         void unescape();
-        bool getValue(Value& value) {
-            return getString(value) || getNumber(value) || getObject(value) || getArray(value) || getBool(value) || getNull(value);
+        Value* getValue() {
+            Value* ret;
+            if ((ret = getString())) {
+                return ret;
+            } else if ((ret = getNumber())) {
+                return ret;
+            } else if ((ret = getObject())) {
+                return ret;
+            } else if ((ret = getArray())) {
+                return ret;
+            } else if ((ret = getBool())) {
+                return ret;
+            } else if ((ret = getNull())) {
+                return ret;
+            } else {
+                return nullptr;
+            }
         }
         bool match(int expected) {
             if (_token == expected) {
@@ -50,14 +62,14 @@ namespace OL {
                 return false;
             }
         }
-        bool getObject(Value& value);
-        bool getArray(Value& value);
-        bool getNumber(Value& value);
-        bool getString(Value& value);
-        bool getBool(Value& value);
-        bool getNull(Value& value);
-        bool getPair(Value& object);
-        bool getElement(Value& array);
+        Value* getObject();
+        Value* getArray();
+        Value* getNumber();
+        Value* getString();
+        Value* getBool();
+        Value* getNull();
+        bool getPair(Object* object);
+        bool getElement(Array* array);
     };
 }
 

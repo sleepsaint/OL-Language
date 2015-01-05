@@ -78,92 +78,90 @@ namespace OL {
         }
     }
     
-    bool JSON::getNumber(Value& value) {
+    Value* JSON::getNumber() {
         if (match(NUMBER_TOKEN)) {
-            value._type = Value::Number;
-            value._number = _tokenNumber;
-            return true;
+            return new Number(_tokenNumber);
         }
-        return false;
+        return nullptr;
     }
     
-    bool JSON::getString(Value& value) {
+    Value* JSON::getString() {
         if (match(STRING_TOKEN)) {
-            value._type = Value::String;
-            value._string = new string(_tokenString.begin(), _tokenString.end());
-            return true;
+            return new String(_tokenString.begin(), _tokenString.end());
         }
-        return false;
+        return nullptr;
     }
     
-    bool JSON::getBool(Value& value) {
+    Value* JSON::getBool() {
         if (match(BOOL_TOKEN)) {
-            value._type = Value::Bool;
-            value._bool = _tokenBool;
-            return true;
+            return new Bool(_tokenBool);
         }
-        return false;
+        return nullptr;
     }
     
-    bool JSON::getNull(Value& value) {
+    Value* JSON::getNull() {
         if (match(NULL_TOKEN)) {
-            return true;
+            return new Value;
         }
-        return false;
+        return nullptr;
     }
     
-    bool JSON::getObject(Value& value) {
+    Value* JSON::getObject() {
         if (match('{')) {
-            value._type = Value::Object;
-            value._object = new map<string, Value>;
-            if (getPair(value)) {
+            Object* object = new Object;
+            if (getPair(object)) {
                 while (match(',')) {
-                    if (!getPair(value)) {
-                        return false;
+                    if (!getPair(object)) {
+                        delete object;
+                        return nullptr;
                     }
                 }
             }
             if (match('}')) {
-                return true;
+                return object;
+            } else {
+                delete object;
             }
         }
-        return false;
+        return nullptr;
     }
     
-    bool JSON::getArray(Value& value) {
+    Value* JSON::getArray() {
         if (match('[')) {
-            value._type = Value::Array;
-            value._array = new vector<Value>;
-            if (getElement(value)) {
+            Array* array = new Array;
+            if (getElement(array)) {
                 while (match(',')) {
-                    if (!getElement(value)) {
-                        return false;
+                    if (!getElement(array)) {
+                        delete array;
+                        return nullptr;
                     }
                 }
             }
             if (match(']')) {
-                return true;
+                return array;
+            } else {
+                delete array;
             }
         }
-        return false;
+        return nullptr;
     }
     
-    bool JSON::getPair(Value &object) {
+    bool JSON::getPair(Object* object) {
         string key(_tokenString.begin(), _tokenString.end());
         if (match(STRING_TOKEN) && match(':')) {
-            Value value;
-            if (getValue(value)) {
-                object._object->insert(pair<string, Value>(key, move(value)));
+            Value* value;
+            if ((value = getValue())) {
+                (*object)[key] = ValuePtr(value);
                 return true;
             }
         }
         return false;
     }
     
-    bool JSON::getElement(Value& array) {
-        Value value;
-        if (getValue(value)) {
-            array._array->push_back(move(value));
+    bool JSON::getElement(Array* array) {
+        Value* value;
+        if ((value = getValue())) {
+            array->append(value);
             return true;
         }
         return false;

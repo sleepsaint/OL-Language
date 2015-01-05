@@ -14,6 +14,7 @@
 
 namespace OL {
     
+    class Value;
     class Source {
         const char* _source;
         const char* _end;
@@ -28,7 +29,7 @@ namespace OL {
         bool _tokenBool;
         std::string _errorLog;
     public:
-        static Value parse(const char* source, size_t length);
+        static ValuePtr parse(const char* source, size_t length);
     private:
         Source(const char* source, size_t length);
         void nextToken();
@@ -42,16 +43,42 @@ namespace OL {
             }
         }
         void error(const std::string& e);
-        bool getNumber(Value& value);
-        bool getString(Value& value);
-        bool getPath(Value& value);
-        bool getKey(std::vector<Value>& v);
-        bool getFragment(Value& value);
-        bool getList(Value& value);
-        bool getNegative(Value& value);
-        bool getQuote(Value& value);
-        bool getValue(Value& value) {
-            return getString(value) || getNumber(value) || getPath(value) || getList(value) || getNegative(value) || getQuote(value);
+        Number* getNumber();
+        String* getString();
+        Path* getPath();
+        Value* getKey(){
+            Value* ret;
+            if ((ret = getString())) {
+                return ret;
+            } else if ((ret = getFragment())) {
+                return ret;
+            } else if ((ret = getList())) {
+                return ret;
+            } else {
+                return nullptr;
+            }
+        }
+        Path* getFragment();
+        List* getList();
+        Negative* getNegative();
+        Quote* getQuote();
+        Value* getValue() {
+            Value* ret;
+            if ((ret = getString())) {
+                return ret;
+            } else if ((ret = getNumber())) {
+                return ret;
+            } else if ((ret = getPath())) {
+                return ret;
+            } else if ((ret = getList())) {
+                return ret;
+            } else if ((ret = getNegative())) {
+                return ret;
+            } else if ((ret = getQuote())) {
+                return ret;
+            } else {
+                return nullptr;
+            }
         }
     };
 }
