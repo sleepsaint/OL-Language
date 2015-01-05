@@ -6,7 +6,8 @@
 //  Copyright (c) 2014年 sleepsaint. All rights reserved.
 //
 
-#include <cstdlib>
+#include <iostream>
+#include <sstream>
 #include "olsource.h"
 
 using namespace std;
@@ -141,7 +142,11 @@ namespace OL {
     }
     
     void Source::error(const std::string &e) {
-        
+        if (_errorLog.empty()) {
+            ostringstream s;
+            s <<  e <<  " at " << (_cursor - _source);
+            _errorLog = s.str();
+        }
     }
     
     bool Source::getNumber(Value& value) {
@@ -175,6 +180,7 @@ namespace OL {
                     return false;
                 }
             }
+            return true;
         }
         return false;
     }
@@ -252,5 +258,17 @@ namespace OL {
             }
         }
         return false;
+    }
+    
+    Value Source::parse(const char *source, size_t length) {
+        Value value;
+        Source s(source, length);
+        if (s.getValue(value)) {
+            return value;
+        } else {
+            cout << "parse error: " << string(source, length) << endl;
+            cout << s._errorLog << endl;
+            return Value();
+        }
     }
 }

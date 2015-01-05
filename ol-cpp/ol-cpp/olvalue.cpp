@@ -6,6 +6,7 @@
 //  Copyright (c) 2014年 sleepsaint. All rights reserved.
 //
 
+#include <iostream>
 #include <sstream>
 #include "olvalue.h"
 
@@ -18,6 +19,10 @@ namespace OL {
     Value::Value(Value&& value) :_type(value._type), _array(value._array) {
         value._type = Null;
     }
+    
+    Value::Value(Value* pointer) : _type(Pointer), _value(pointer) {}
+    
+    Value::Value(bool b) : _type(Bool), _bool(b) {}
     
     Value::~Value() {
         switch (_type) {
@@ -158,9 +163,113 @@ namespace OL {
                 return descriptionQuote();
             case Bool:
                 return descriptionBool();
+            case Pointer:
+                return _value->description();
             default:
                 return "";
         }
     }
     
+    Value::operator bool () {
+        switch (_type) {
+            case Null:
+                return false;
+            case Char:
+                return _char != 0;
+            case Number:
+                return _number != 0;
+            case String:
+                return !_string->empty();
+            case Array:
+                return !_array->empty();
+            case Object:
+                return !_object->empty();
+            case Path:
+            case List:
+            case Negative:
+            case Quote:
+                return true;
+            case Bool:
+                return _bool;
+            default:
+                return false;
+        }
+        
+    }
+    
+    static Value NullValue;
+    
+    Value& Value::at(const Value& key) {
+        Value* container = this->_type == Pointer ? _value : this;
+        const Value* index = key._type == Pointer ? key._value : &key;
+        switch (container->_type) {
+            case Array:
+                switch (index->_type) {
+                    case Number:
+                        if ( index->_number < container->_array->size()) {
+                            return container->_array->at(index->_number);
+                        }
+                    default:
+                        break;
+                }
+                break;
+            case Object:
+                switch (index->_type) {
+                    case String:
+                        return container->_object->at(*index->_string);
+ 
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
+        }
+        return NullValue;
+    }
+    
+    Value Value::lookup(Value& root, Value& temp, Value& now) {
+        switch (_type) {
+            case Null:
+            case Char:
+            case Number:
+            case Bool:
+            case String:
+            case Array:
+            case Object:
+                return this;
+            case Path:
+                return lookupPath(root, temp, now);
+                //            case List:
+                //                return descriptionList();
+            case Negative:
+                return !(*this);
+            case Quote:
+                return _value;
+            default:
+                return Value();
+        }
+    }
+    
+    Value Value::lookupPath(Value &root, Value &temp, Value &now) {
+        Value* current;
+        switch (_pair->first._char) {
+            case '^':
+                current = &root;
+                break;
+            case '~':
+                current = &temp;
+                break;
+            case '@':
+                current = &now;
+                break;
+            default:
+                return Value();
+        }
+        for (auto& key : _pair->second) {
+            Value k = key.lookup(root, temp, now);
+            current = &current->at(k);
+        }
+        return current;
+    }
 }

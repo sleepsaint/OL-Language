@@ -28,8 +28,9 @@ namespace OL {
         bool _tokenBool;
         std::string _errorLog;
     public:
+        static Value parse(const char* source, size_t length);
+    private:
         Source(const char* source, size_t length);
-//    private:
         void nextToken();
         void unescape();
         bool match(int expected) {

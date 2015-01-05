@@ -35,12 +35,6 @@ namespace OL {
             json.getValue(value);
             return value;
         }
-        static Value* parse2(const char* source, size_t length) {
-            JSON json(source, length);
-            Value* value = new Value;
-            json.getValue(*value);
-            return value;
-        }
     private:
         JSON(const char* source, size_t length);
         void nextToken();
