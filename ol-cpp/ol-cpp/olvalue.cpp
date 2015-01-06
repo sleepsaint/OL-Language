@@ -99,7 +99,7 @@ namespace OL {
         return ret;
     }
     
-    ValuePtr Path::lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) {
+    ValuePtr Path::lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
         ValuePtr current;
         switch (_root) {
             case '^':
@@ -126,7 +126,7 @@ namespace OL {
         return current;
     }
     
-    ValuePtr List::lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) {
+    ValuePtr List::lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
         ValuePtr name = _head->lookup(_head, root, temp, now);
         if (name) {
             vector<ValuePtr> params;
@@ -137,7 +137,7 @@ namespace OL {
         return nullptr;
     }
     
-    ValuePtr Negative::lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) {
+    ValuePtr Negative::lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
         ValuePtr p = _value->lookup(_value, root, temp, now);
         return ValuePtr(new Bool(!(p && *p)));
     }
@@ -150,35 +150,35 @@ namespace OL {
             return 0;
         }
     }
-    int String::compare(OL::Value *v) {
-        String* s = dynamic_cast<String*>(v);
+    int String::compare(const Value* v) {
+        const String* s = dynamic_cast<const String*>(v);
         if (s) {
             return ::OL::compare(_value, s->_value);
         }
-        Number* n = dynamic_cast<Number*>(v);
+        const Number* n = dynamic_cast<const Number*>(v);
         if (n) {
             return ::OL::compare(_value, s->_value);
         }
         return 0;
     }
     
-    int Number::compare(OL::Value *v) {
-        Number* s = dynamic_cast<Number*>(v);
+    int Number::compare(const Value* v) {
+        const Number* s = dynamic_cast<const Number*>(v);
         if (s) {
             return ::OL::compare(_value, s->_value);
         }
         return 0;
     }
     
-    int Bool::compare(OL::Value *v) {
-        Bool* b = dynamic_cast<Bool*>(v);
+    int Bool::compare(const Value* v) {
+        const Bool* b = dynamic_cast<const Bool*>(v);
         if (b) {
             return ::OL::compare(_value, b->_value);
         }
         return 0;
     }
     
-    ValuePtr Array::filter(ValuePtr func, ValuePtr root, ValuePtr temp) {
+    ValuePtr Array::filter(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
         Array* ret = new Array;
         ret->_value.resize(_value.size());
         auto it = copy_if(_value.begin(), _value.end(), ret->_value.begin(),
@@ -190,7 +190,7 @@ namespace OL {
         return ValuePtr(ret);
     }
 
-    ValuePtr Object::filter(ValuePtr func, ValuePtr root, ValuePtr temp) {
+    ValuePtr Object::filter(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
         Object* ret = new Object;
         for (auto i : _value) {
             ValuePtr p = func->lookup(func, root, temp, i.second);
@@ -217,14 +217,14 @@ namespace OL {
         }
     }
     
-    void Path::sort(const ValuePtr& call, std::vector<ValuePtr>& array, ValuePtr root, ValuePtr temp) {
+    void Path::sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
         ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
             int ret = ::OL::compare(a, b, call, root, temp);
             return ret < 0;
         });
     }
 
-    void List::sort(const ValuePtr& call, std::vector<ValuePtr>& array, ValuePtr root, ValuePtr temp) {
+    void List::sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
         ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
             int ret = ::OL::compare(a, b, _head, root, temp);
             for (const auto& i : _tail) {
@@ -238,7 +238,7 @@ namespace OL {
         });
     }
     
-    void Negative::sort(const ValuePtr &call, std::vector<ValuePtr> &array, ValuePtr root, ValuePtr temp) {
+    void Negative::sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
         ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
             int ret = ::OL::compare(a, b, _value, root, temp);
             return ret > 0;
@@ -250,7 +250,7 @@ namespace OL {
         transform(_value.begin(), _value.end(), v.begin(), [](const pair<string, ValuePtr>& i)->ValuePtr{return i.second;});
     }
     
-    bool Array::some(ValuePtr func, ValuePtr root, ValuePtr temp) {
+    bool Array::some(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
         for (const auto& i : _value) {
             if (func->lookup(func, root, temp, i)) {
                 return true;
@@ -259,7 +259,7 @@ namespace OL {
         return false;
     }
     
-    bool Object::some(ValuePtr func, ValuePtr root, ValuePtr temp) {
+    bool Object::some(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
         for (const auto& i : _value) {
             if (func->lookup(func, root, temp, i.second)) {
                 return true;

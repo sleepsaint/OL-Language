@@ -13,7 +13,7 @@
 
 namespace OL {
     
-    ValuePtr calc(const std::string& name, const std::vector<ValuePtr>& params, ValuePtr root, ValuePtr temp, ValuePtr now);
+    ValuePtr calc(const std::string& name, const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now);
 }
 
 #endif /* defined(__ol_cpp__olfunction__) */
