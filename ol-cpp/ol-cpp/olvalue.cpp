@@ -8,8 +8,10 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include "olvalue.h"
 #include "olsource.h"
+#include "olfunction.h"
 
 using namespace std;
 
@@ -86,7 +88,18 @@ namespace OL {
         return _value ? "true" : "false";
     }
     
-    ValuePtr Path::lookup(ValuePtr root, ValuePtr temp, ValuePtr now) {
+    ValuePtr autoLookup(ValuePtr call, ValuePtr root, ValuePtr temp, ValuePtr now) {
+        ValuePtr ret = call;
+        while (typeid(*ret) == typeid(String)) {
+            ValuePtr source = Source::parse(ret->description());
+            if (source) {
+                ret = source->lookup(source, root, temp, now);
+            }
+        }
+        return ret;
+    }
+    
+    ValuePtr Path::lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) {
         ValuePtr current;
         switch (_root) {
             case '^':
@@ -102,21 +115,29 @@ namespace OL {
                 return nullptr;
         }
         for (auto& k : _keys) {
-            auto key = k->lookup(root, temp, now);
+            auto key = k->lookup(k, root, temp, now);
+            current = autoLookup(current, root, temp, now);
             if (key && current) {
-//                current = (*current)[key->description()];
+                current = (*current)[key->description()];
             } else {
                 return nullptr;
             }
         }
+        return current;
+    }
+    
+    ValuePtr List::lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) {
+        ValuePtr name = _head->lookup(_head, root, temp, now);
+        if (name) {
+            vector<ValuePtr> params;
+            params.resize(_tail.size());
+            transform(_tail.begin(), _tail.end(), params.begin(), [=](ValuePtr v)->ValuePtr{return v->lookup(v, root, temp, now);});
+            return calc(name->description(), params, root, temp, now);
+        }
         return nullptr;
     }
     
-    ValuePtr List::lookup(ValuePtr root, ValuePtr temp, ValuePtr now) {
-        return nullptr;
-    }
-    
-    ValuePtr Negative::lookup(ValuePtr root, ValuePtr temp, ValuePtr now) {
+    ValuePtr Negative::lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) {
         return nullptr;
     }
 }

@@ -45,9 +45,9 @@ void test_lookup() {
     using namespace OL;
     vector<string> test = {
         "^.wear.{^.person.{~.person}.wear.hat}.price",
-//        "^.wear.{~.person2.wear.hat}.price",
-//        "~.personwear.price",
-//        "(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
+        "^.wear.{~.person2.wear.hat}.price",
+        "~.personwear.price",
+        "(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
 //        "(filter, ^.wear, #(>, @.price, $150))",
 //        "(filter, ^.wear, ~.wearfilter1)",
 //        "(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )",
@@ -67,12 +67,12 @@ void test_lookup() {
     auto temp_json = JSON::parse(temp.c_str(), temp.length());
     for (const auto& i : test) {
         auto value = Source::parse(i.c_str(), i.length());
-        auto value2 = value->lookup(root_json, temp_json, root_json);
-//        if (value2) {
-//            cout << i << endl;
-//            cout << value2->description() << endl;
-//
-//        }
+        auto value2 = value->lookup(value, root_json, temp_json, root_json);
+        if (value2) {
+            cout << i << endl;
+            cout << value2->description() << endl;
+
+        }
     }
     
 }

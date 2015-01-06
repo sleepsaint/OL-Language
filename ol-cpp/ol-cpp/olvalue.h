@@ -21,10 +21,10 @@ namespace OL {
     public:
         virtual ~Value() {}
         virtual std::string description() { return "null"; }
-        virtual ValuePtr lookup(ValuePtr root, ValuePtr temp, ValuePtr now) { return ValuePtr(this); }
+        virtual ValuePtr lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) { return call; }
         virtual ValuePtr& at(const std::string& key) { static ValuePtr ptr; return ptr; }
         virtual ValuePtr& operator[](const std::string& key) { static ValuePtr ptr; return ptr; }
-
+        virtual double toNumber() { return 0; }
     };
     
     class String : public Value {
@@ -39,6 +39,7 @@ namespace OL {
     public:
         Number(double number) : _value(number) {}
         std::string description() override;
+        virtual double toNumber() { return _value; }
     };
     
     class Array  : public Value {
@@ -72,7 +73,7 @@ namespace OL {
         Path(char root) : _root(root) {}
         void append(Value* key) { _keys.push_back(ValuePtr(key)); }
         std::string description() override;
-        ValuePtr lookup(ValuePtr root, ValuePtr temp, ValuePtr now) override;
+        ValuePtr lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) override;
     };
     
     class List : public Value {
@@ -82,7 +83,7 @@ namespace OL {
         List(Value* head) : _head(head) {}
         void append(Value* item) { _tail.push_back(ValuePtr(item)); }
         std::string description() override;
-        ValuePtr lookup(ValuePtr root, ValuePtr temp, ValuePtr now) override;
+        ValuePtr lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) override;
     };
     
     class Negative : public Value {
@@ -90,7 +91,7 @@ namespace OL {
     public:
         Negative(Value* value) : _value(value) {}
         std::string description() override { return "!" + _value->description(); }
-        ValuePtr lookup(ValuePtr root, ValuePtr temp, ValuePtr now) override;
+        ValuePtr lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) override;
     };
     
     class Quote : public Value {
@@ -98,11 +99,12 @@ namespace OL {
     public:
         Quote(Value* value) : _value(value) {}
         std::string description() override { return "#" + _value->description(); }
-        ValuePtr lookup(ValuePtr root, ValuePtr temp, ValuePtr now) override {
+        ValuePtr lookup(const ValuePtr& call, ValuePtr root, ValuePtr temp, ValuePtr now) override {
             return _value;
         }
     };
     
+    ValuePtr autoLookup(ValuePtr call, ValuePtr root, ValuePtr temp, ValuePtr now);
     
 }
 #endif /* defined(__ol_cpp__olvalue__) */

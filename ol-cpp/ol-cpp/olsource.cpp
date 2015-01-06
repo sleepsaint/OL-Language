@@ -258,4 +258,8 @@ namespace OL {
         }
         return ret;
     }
+    
+    ValuePtr Source::parse(const std::string &source) {
+        return parse(source.c_str(), source.length());
+    }
 }
