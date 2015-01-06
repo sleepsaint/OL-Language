@@ -13,56 +13,79 @@ extension OL {
     class Source {
         let source: String
         var cursor: String.Index
-        var token: String?
+        var token: Character = "\0"
         var errorLog = ""
+        var tokenString: String = ""
+        var tokenNumber: Double = 0
         init(source: String) {
             self.source = source
             self.cursor = source.startIndex
-            self.token = getToken()
+            nextToken()
         }
-        func getToken() -> String? {
-            enum ScanStatus { case None, String, Number};
+        func nextToken() {
             var start = cursor;
-            var status = ScanStatus.None;
-            for i in cursor ..< source.endIndex {
-                let c = source[i]
+            if cursor < source.endIndex {
+                let c = source[cursor]
                 switch c {
-                case "~", "!", "@", "^", "(", ")", "{", "}", ",", "#":
-                    if status == .None {
-                        ++cursor
-                        return String(c)
-                    } else {
-                        cursor = i
-                        return source.substringWithRange(start ..< i)
-                    }
-                case ".":
-                    if status == .None {
-                        ++cursor
-                        return "."
-                    } else if status == .String {
-                        cursor = i;
-                        return source.substringWithRange(start ..< i)
-                    }
-                case " ":
+                case "~", "!", "@", "^", "(", ")", "{", "}", ",", "#", ".":
+                    token = c;
+                    ++cursor;
+                case " ", "\n":
                     ++cursor
+                    nextToken()
                 case "$":
-                    if status == .None {
-                        start = cursor
-                        status = .Number
+                    token = "n"
+                    ++cursor;
+                    start = cursor;
+                    PP: while cursor < source.endIndex {
+                        switch source[cursor] {
+                        case "~", "!", "@", "^", "(", ")", "{", "}", ",", "#", " ", "\n", "$":
+                            break PP;
+                        default:
+                            ++cursor;
+                        }
                     }
+                    tokenNumber = (source.substringWithRange(start ..< cursor) as NSString).doubleValue;
                 default:
-                    if status == .None {
-                        start = cursor
-                        status = .String
+                    token = "s"
+                    unescape()
+                }
+            } else {
+                token = "\0"
+            }
+        }
+        func unescape() {
+            tokenString.removeAll(keepCapacity: true);
+            while cursor < source.endIndex {
+                let c = source[cursor]
+                switch c {
+                case "~", "!", "@", "^", "(", ")", "{", "}", ",", "#", ".", "$":
+                    return
+                case "\\":
+                    ++cursor
+                    let d = source[cursor]
+                    switch d {
+                    case "\\":
+                        tokenString.append(Character("\\"))
+                    case "n":
+                        tokenString.append(Character("\n"))
+                    case "r":
+                        tokenString.append(Character("\r"))
+                    case "t":
+                        tokenString.append(Character("\t"))
+                    default:
+                        tokenString.append(d)
                     }
+                    ++cursor
+                default:
+                    tokenString.append(c)
+                    ++cursor;
                 }
             }
-            cursor = source.endIndex
-            return (start == source.endIndex || status == .None) ? nil : source.substringFromIndex(start)
         }
-        func match(expected: String) -> Bool {
+        func match(expected: Character) -> Bool {
             if expected == token {
-                token = getToken()
+                nextToken()
                 return true
             } else {
                 return false
@@ -73,49 +96,35 @@ extension OL {
                 errorLog = "\(e) at \(cursor)"
             }
         }
-        func getLiteral() -> Value? {
-            if let literal = token {
-                switch literal {
-                case "~", "!", "@", "^", "(", ")", "{", "}", ",", ".", "#":
-                    return nil
-                default:
-                    token = getToken()
-                    if literal[literal.startIndex] == "$" {
-                        return Number(value: (literal.substringFromIndex(advance(literal.startIndex ,1)) as NSString).doubleValue)
-                    } else {
-                        return String2(value: literal)
-                    }
-                }
-
-            } else {
-                return nil
-            }
-        }
-        func getPath() -> Value? {
-            if let root = token {
-                if match("^") || match("~") || match("@") {
-                    let ret = Path(root: root)
-                    while match(".") {
-                        if let key = getKey() {
-                            ret.addKey(key)
-                        } else {
-                            error("can not match a key")
-                            return nil
-                        }
-                    }
-                    return ret
-                }
+        func getNumber() -> Value? {
+            if match("n") {
+                return Number(value: tokenNumber)
             }
             return nil
         }
         func getString() -> Value? {
-            if let ret = getLiteral() {
-                if ret is String2 {
-                    return ret
-                }
+            if match("s") {
+                return String2(value: tokenString)
             }
             return nil
         }
+        func getPath() -> Value? {
+            let root = token
+            if match("^") || match("~") || match("@") {
+                let ret = Path(root: root)
+                while match(".") {
+                    if let key = getKey() {
+                        ret.addKey(key)
+                    } else {
+                        error("can not match a key")
+                        return nil
+                    }
+                }
+                return ret
+            }
+            return nil
+        }
+        
         func getKey() -> Value? {
             return getString() ?? getFragment() ?? getList()
         }
@@ -175,7 +184,7 @@ extension OL {
             return nil
         }
         func getValue() -> Value? {
-            return getLiteral() ?? getPath() ?? getList() ?? getNegative() ?? getOuote()
+            return getString() ?? getNumber() ?? getPath() ?? getList() ?? getNegative() ?? getOuote()
         }
     }
     

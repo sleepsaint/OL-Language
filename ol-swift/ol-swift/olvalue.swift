@@ -43,9 +43,9 @@ extension OL {
     }
     
     class Path: Value, Printable {
-        let root: String
+        let root: Character
         var keys = Array<Value>()
-        init(root: String) {
+        init(root: Character) {
             self.root = root
         }
         func addKey(key: Value) {

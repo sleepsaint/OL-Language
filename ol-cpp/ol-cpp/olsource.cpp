@@ -104,20 +104,8 @@ namespace OL {
                     ++_cursor;
                     d = *_cursor;
                     switch (d) {
-                        case '"':
-                            _tokenString.append('"');
-                            break;
                         case '\\':
                             _tokenString.append('\\');
-                            break;
-                        case '/':
-                            _tokenString.append('/');
-                            break;
-                        case 'b':
-                            _tokenString.append('\b');
-                            break;
-                        case 'f':
-                            _tokenString.append('\f');
                             break;
                         case 'n':
                             _tokenString.append('\n');
