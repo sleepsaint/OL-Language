@@ -24,7 +24,7 @@ func test_parse() {
         "(abd, !)"
     ]
     for t in test {
-        if let value = OL.parse(t) {
+        if let value = OLSource.parse(t) {
             println(value)
         }
     }
@@ -54,14 +54,13 @@ func test_lookup() {
         "(random, $-5, $-3)"
     ]
     for t in test {
-        if let value = OL.parse(t) {
-            if let a : AnyObject = value.lookup(root, temp: temp, now: root) {
-                println(t)
-                println(a)
-            }
+        if let value = OLSource.parse(t) {
+            let a = value.lookup(root, temp: temp, now: root)
+            println(t)
+            println(a)
         }
     }
-
+    
 }
 
 //test_parse()
