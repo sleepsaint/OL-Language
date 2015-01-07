@@ -57,13 +57,22 @@ func test_lookup() {
     for t in test {
         if let value = OLSource.parse(t) {
             let a = value.lookup(root, temp: temp, now: root)
-//            println(t)
-//            println(a)
+            println(t)
+            println(a)
         }
     }
     
 }
-
+func test_lookup2() {
+    for t in test {
+        if let value = OLSource.parse(t) {
+            let a = value.lookup(root, temp: temp, now: root)
+            //            println(t)
+            //            println(a)
+        }
+    }
+    
+}
 func PP(f: ()->()) {
     let start = clock()
     for i in 0 ..< 10 {
@@ -74,4 +83,5 @@ func PP(f: ()->()) {
 }
 
 //test_parse()
-PP(test_lookup)
+//test_lookup()
+PP(test_lookup2)
