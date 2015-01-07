@@ -137,16 +137,16 @@ namespace OL {
         }
     }
     
-    class Number* Source::getNumber() {
+    Quote* Source::getNumber() {
         if (match(NUMBER_TOKEN)) {
-            return new class Number(_tokenNumber);
+            return new Quote(new class Number(_tokenNumber));
         }
         return nullptr;
     }
     
-    class String* Source::getString() {
+    Quote* Source::getString() {
         if (match(STRING_TOKEN)) {
-            return new class String(_tokenString.begin(), _tokenString.end());
+            return new Quote(new class String(_tokenString.begin(), _tokenString.end()));
         }
         return nullptr;
     }

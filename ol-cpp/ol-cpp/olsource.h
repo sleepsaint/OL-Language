@@ -44,8 +44,8 @@ namespace OL {
             }
         }
         void error(const std::string& e);
-        Number* getNumber();
-        String* getString();
+        Quote* getNumber();
+        Quote* getString();
         Path* getPath();
         Value* getKey(){
             Value* ret;
