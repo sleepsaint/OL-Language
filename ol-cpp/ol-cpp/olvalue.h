@@ -21,14 +21,14 @@ namespace OL {
     public:
         virtual ~Value() {}
         virtual std::string description() { return "null"; }
-        virtual ValuePtr lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) { return call; }
+        virtual ValuePtr lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) { return nullptr; }
         virtual ValuePtr& at(const std::string& key) { static ValuePtr ptr; return ptr; }
         virtual ValuePtr& operator[](const std::string& key) { static ValuePtr ptr; return ptr; }
         virtual double toNumber() { return 0; }
         virtual int compare(const Value* v) { return 0; }
         virtual ValuePtr filter(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) { return nullptr; }
         virtual operator bool() { return false; }
-        virtual void sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {}
+        virtual void sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {}
         virtual void toArray(std::vector<ValuePtr>&) {}
         virtual bool some(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) { return false; }
     };
@@ -97,8 +97,8 @@ namespace OL {
         Path(char root) : _root(root) {}
         void append(Value* key) { _keys.push_back(ValuePtr(key)); }
         std::string description() override;
-        ValuePtr lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override;
-        void sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) override;
+        ValuePtr lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override;
+        void sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) override;
     };
     
     class List : public Value {
@@ -108,8 +108,8 @@ namespace OL {
         List(Value* head) : _head(head) {}
         void append(Value* item) { _tail.push_back(ValuePtr(item)); }
         std::string description() override;
-        ValuePtr lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override;
-        void sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) override;
+        ValuePtr lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override;
+        void sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) override;
     };
     
     class Negative : public Value {
@@ -117,8 +117,8 @@ namespace OL {
         ValuePtr _value;
         Negative(Value* value) : _value(value) {}
         std::string description() override { return "!" + _value->description(); }
-        ValuePtr lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override;
-        void sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) override;
+        ValuePtr lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override;
+        void sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) override;
     };
     
     class Quote : public Value {
@@ -126,12 +126,12 @@ namespace OL {
     public:
         Quote(Value* value) : _value(value) {}
         std::string description() override { return "#" + _value->description(); }
-        ValuePtr lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override {
+        ValuePtr lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) override {
             return _value;
         }
     };
     
-    ValuePtr autoLookup(ValuePtr call, ValuePtr root, ValuePtr temp, ValuePtr now);
+    ValuePtr autoLookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now);
     
 }
 #endif /* defined(__ol_cpp__olvalue__) */

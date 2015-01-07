@@ -103,7 +103,7 @@ static map<string, FUNC> table {
         if (container && func) {
             auto array = new Array;
             container->toArray(array->_value);
-            func->sort(func, array->_value, root, temp);
+            func->sort(array->_value, root, temp);
             return ValuePtr(array);
         }
         return nullptr;

@@ -67,7 +67,7 @@ void test_lookup() {
     auto temp_json = JSON::parse(temp.c_str(), temp.length());
     for (const auto& i : test) {
         auto value = Source::parse(i.c_str(), i.length());
-        auto value2 = value->lookup(value, root_json, temp_json, root_json);
+        auto value2 = value->lookup(root_json, temp_json, root_json);
         if (value2) {
             cout << i << endl;
             cout << value2->description() << endl;

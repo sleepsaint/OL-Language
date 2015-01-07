@@ -88,18 +88,18 @@ namespace OL {
         return _value ? "true" : "false";
     }
     
-    ValuePtr autoLookup(ValuePtr call, ValuePtr root, ValuePtr temp, ValuePtr now) {
+    ValuePtr autoLookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
         ValuePtr ret = call;
         while (typeid(*ret) == typeid(String)) {
             ValuePtr source = Source::parse(ret->description());
             if (source) {
-                ret = source->lookup(source, root, temp, now);
+                ret = source->lookup(root, temp, now);
             }
         }
         return ret;
     }
     
-    ValuePtr Path::lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
+    ValuePtr Path::lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
         ValuePtr current;
         switch (_root) {
             case '^':
@@ -115,7 +115,7 @@ namespace OL {
                 return nullptr;
         }
         for (auto& k : _keys) {
-            auto key = k->lookup(k, root, temp, now);
+            auto key = k->lookup(root, temp, now);
             current = autoLookup(current, root, temp, now);
             if (key && current) {
                 current = (*current)[key->description()];
@@ -126,19 +126,19 @@ namespace OL {
         return current;
     }
     
-    ValuePtr List::lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
-        ValuePtr name = _head->lookup(_head, root, temp, now);
+    ValuePtr List::lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
+        ValuePtr name = _head->lookup(root, temp, now);
         if (name) {
             vector<ValuePtr> params;
             params.resize(_tail.size());
-            transform(_tail.begin(), _tail.end(), params.begin(), [=](ValuePtr v)->ValuePtr{return v->lookup(v, root, temp, now);});
+            transform(_tail.begin(), _tail.end(), params.begin(), [=](ValuePtr v)->ValuePtr{return v->lookup(root, temp, now);});
             return calc(name->description(), params, root, temp, now);
         }
         return nullptr;
     }
     
-    ValuePtr Negative::lookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
-        ValuePtr p = _value->lookup(_value, root, temp, now);
+    ValuePtr Negative::lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
+        ValuePtr p = _value->lookup(root, temp, now);
         return ValuePtr(new Bool(!(p && *p)));
     }
     template<typename T> int compare(const T& a, const T& b) {
@@ -183,7 +183,7 @@ namespace OL {
         ret->_value.resize(_value.size());
         auto it = copy_if(_value.begin(), _value.end(), ret->_value.begin(),
                           [=](ValuePtr& v)->bool{
-                              ValuePtr p = func->lookup(func, root, temp, v);
+                              ValuePtr p = func->lookup(root, temp, v);
                               return p ? *p : false;
                           });
         ret->_value.resize(distance(ret->_value.begin(), it));
@@ -193,7 +193,7 @@ namespace OL {
     ValuePtr Object::filter(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
         Object* ret = new Object;
         for (auto i : _value) {
-            ValuePtr p = func->lookup(func, root, temp, i.second);
+            ValuePtr p = func->lookup(root, temp, i.second);
             if (p && *p) {
                 ret->_value[i.first] = i.second;
             }
@@ -201,14 +201,14 @@ namespace OL {
         return ValuePtr(ret);
     }
     
-    inline int compare(const ValuePtr& a, const ValuePtr& b, const ValuePtr& call, ValuePtr root, ValuePtr temp) {
+    inline int compare(const ValuePtr& a, const ValuePtr& b, Value* call, ValuePtr root, ValuePtr temp) {
         if (a && b) {
-            Negative* negative = dynamic_cast<Negative*>(call.get());
+            Negative* negative = dynamic_cast<Negative*>(call);
             if (negative) {
-                return -compare(a, b, negative->_value, root, temp);
+                return -compare(a, b, negative->_value.get(), root, temp);
             } else {
-                ValuePtr left = call->lookup(call, root, temp, a);
-                ValuePtr right = call->lookup(call, root, temp, b);
+                ValuePtr left = call->lookup(root, temp, a);
+                ValuePtr right = call->lookup(root, temp, b);
                 return left->compare(right.get());
             }
 
@@ -217,30 +217,30 @@ namespace OL {
         }
     }
     
-    void Path::sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
+    void Path::sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
         ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
-            int ret = ::OL::compare(a, b, call, root, temp);
+            int ret = ::OL::compare(a, b, this, root, temp);
             return ret < 0;
         });
     }
 
-    void List::sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
+    void List::sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
         ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
-            int ret = ::OL::compare(a, b, _head, root, temp);
+            int ret = ::OL::compare(a, b, _head.get(), root, temp);
             for (const auto& i : _tail) {
                 if (ret != 0) {
                     return ret < 0;
                 } else {
-                    ret = ::OL::compare(a, b, i, root, temp);
+                    ret = ::OL::compare(a, b, i.get(), root, temp);
                 }
             }
             return ret < 0;
         });
     }
     
-    void Negative::sort(const ValuePtr& call, std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
+    void Negative::sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
         ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
-            int ret = ::OL::compare(a, b, _value, root, temp);
+            int ret = ::OL::compare(a, b, _value.get(), root, temp);
             return ret > 0;
         });
     }
@@ -252,7 +252,7 @@ namespace OL {
     
     bool Array::some(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
         for (const auto& i : _value) {
-            if (func->lookup(func, root, temp, i)) {
+            if (func->lookup(root, temp, i)) {
                 return true;
             }
         }
@@ -261,7 +261,7 @@ namespace OL {
     
     bool Object::some(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
         for (const auto& i : _value) {
-            if (func->lookup(func, root, temp, i.second)) {
+            if (func->lookup(root, temp, i.second)) {
                 return true;
             }
         }
