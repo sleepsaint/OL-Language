@@ -41,6 +41,9 @@ string root = "{\"person\":{\"P0001\":{\"name\":\"Tom\",\"age\":30,\"wear\":{\"h
 
 string temp = "{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"#(>, @.price, $150)\",\"wearsorter1\":\"#(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}";
 
+auto root_json = OL::JSON::parse(root.c_str(), root.length());
+auto temp_json = OL::JSON::parse(temp.c_str(), temp.length());
+
 void test_lookup() {
     using namespace OL;
     vector<string> test = {
@@ -63,16 +66,14 @@ void test_lookup() {
         "(random, $5)",
         "(random, $-5, $-3)"
     };
-    auto root_json = JSON::parse(root.c_str(), root.length());
-    auto temp_json = JSON::parse(temp.c_str(), temp.length());
     for (const auto& i : test) {
         auto value = Source::parse(i.c_str(), i.length());
         auto value2 = value->lookup(root_json, temp_json, root_json);
-        if (value2) {
-            cout << i << endl;
-            cout << value2->description() << endl;
-
-        }
+//        if (value2) {
+//            cout << i << endl;
+//            cout << value2->description() << endl;
+//
+//        }
     }
     
 }
@@ -82,11 +83,21 @@ void test_parse_json() {
     cout << json->description() << endl;
 }
 
+typedef void (*FUNC)();
+
+void PP(FUNC func) {
+    auto start = clock();
+    for (int i = 0; i < 1000; ++i) {
+        func();
+    }
+    auto end = clock();
+    cout << end - start << endl;
+}
 
 int main(int argc, const char * argv[]) {
   
 //        test_parse();
-    test_lookup();
+    PP(test_lookup);
 //    test_parse_json();
     return 0;
 }

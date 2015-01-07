@@ -52,41 +52,55 @@
 		now: "^.wear",
 	};
 	var now = {};
+	var test = [
+		"^.wear.{^.person.{~.person}.wear.hat}.price",
+		"^.wear.{~.person2.wear.hat}.price",
+		"~.personwear.price",
+		"(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
+		"(filter, ^.wear, #(>, @.price, 150))",
+		"(filter, ^.wear, ~.wearfilter1)",
+		"(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )",
+		"(sort, ^.wear, #(@.price))",
+		"(sort, ^.wear, #(!(=,@.name,Red Hat),@.price))",
+		"(sort, ^.wear, ~.wearsorter1)",
+		"(some, ^.wear, ~.wearfilter1)",
+		"(sort, ~.now, ~.wearsorter1)",
+		"(some, ~.now, #(>,@.price,50))",
+		"(sort, ^.wear, #@.price)",
+		"(sort, ^.wear, #!@.price)",
+		"(random)",
+		"(random, $5)",
+		"(random, $-5, $-3)"
+	];
 	function test_lookup() {
-		var test = [
-			"^.wear.{^.person.{~.person}.wear.hat}.price",
-			"^.wear.{~.person2.wear.hat}.price",
-			"~.personwear.price",
-			"(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
-			"(filter, ^.wear, #(>, @.price, 150))",
-			"(filter, ^.wear, ~.wearfilter1)",
-			"(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )",
-			"(sort, ^.wear, #(@.price))",
-			"(sort, ^.wear, #(!(=,@.name,Red Hat),@.price))",
-			"(sort, ^.wear, ~.wearsorter1)",
-			"(some, ^.wear, ~.wearfilter1)",
-			"(sort, ~.now, ~.wearsorter1)",
-			"(some, ~.now, #(>,@.price,50))",
-			"(sort, ^.wear, #@.price)",
-			"(sort, ^.wear, #!@.price)",
-			"(random)",
-			"(random, $5)",
-			"(random, $-5, $-3)"
-		]
+
 		for (var i in test) {
 			var source = test[i];
-			console.log(source);
-			console.log(OL.parse(source).lookup(root, temp, now))
+			var value = OL.parse(source).lookup(root, temp, now);
+			// console.log(source);
+			// console.log(value)
 		}
 	}
 	
-	function test() {
-		// test_parse();
-		 test_lookup();
+	function PP(fun) {
+		var start = new Date();
+		for (var i = 0; i < 1000; ++i) {
+			fun()
+		}
+		var end = new Date();
+		console.log(end.getTime() - start.getTime());
 	}
+	function test2() {
+		// test_parse();
+		// test_lookup();
+		 PP(test_lookup);
+	}
+	
+	
+	
 	</script>
 </head>
-<body id="oltest" onload="test()">
+<body id="oltest" onload="test2()">
 	See result in console.
 </body>
 </html>
