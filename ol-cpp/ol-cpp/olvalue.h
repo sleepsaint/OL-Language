@@ -91,7 +91,7 @@ namespace OL {
     };
     
     class Path : public Value {
-        char _root;
+        int _root;
         std::vector<ValuePtr> _keys;
     public:
         Path(char root) : _root(root) {}

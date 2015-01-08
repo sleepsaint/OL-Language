@@ -66,7 +66,7 @@ func test_lookup() {
 func test_lookup2() {
     for t in test {
         if let value = OLSource.parse(t) {
-            let a = value.lookup(root, temp: temp, now: root)
+//            let a = value.lookup(root, temp: temp, now: root)
             //            println(t)
             //            println(a)
         }
