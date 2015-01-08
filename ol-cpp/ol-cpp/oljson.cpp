@@ -149,8 +149,8 @@ namespace OL {
     bool JSON::getPair(Object* object) {
         string key(_tokenString.begin(), _tokenString.end());
         if (match(STRING_TOKEN) && match(':')) {
-            Value* value;
-            if ((value = getValue())) {
+            Value* value = getValue();
+            if (value) {
                 (*object)[key] = ValuePtr(value);
                 return true;
             }
@@ -159,8 +159,8 @@ namespace OL {
     }
     
     bool JSON::getElement(Array* array) {
-        Value* value;
-        if ((value = getValue())) {
+        Value* value = getValue();
+        if (value) {
             array->append(value);
             return true;
         }

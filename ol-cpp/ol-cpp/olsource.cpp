@@ -172,8 +172,8 @@ namespace OL {
     
     Path* Source::getFragment() {
         if (match('{')) {
-            Path* path;
-            if ((path = getPath())) {
+            Path* path = getPath();
+            if (path) {
                 if (match('}')) {
                     return path;
                 } else {
@@ -189,12 +189,12 @@ namespace OL {
     
     List* Source::getList() {
         if (match('(')) {
-            Value* head;
-            if ((head = getValue())) {
+            Value* head = getValue();
+            if (head) {
                 List* list = new List(head);
                 while (match(',')) {
-                    Value* item;
-                    if ((item = getValue())) {
+                    Value* item = getValue();
+                    if (item) {
                         list->append(item);
                     } else {
                         error("tail can not match a value");
@@ -215,8 +215,8 @@ namespace OL {
     
     Negative* Source::getNegative() {
         if (match('!')) {
-            Value* value;
-            if ((value = getValue())) {
+            Value* value = getValue();
+            if (value) {
                 return new Negative(value);
             } else {
                 error("can not match value for !");
@@ -227,8 +227,8 @@ namespace OL {
     
     Quote* Source::getQuote() {
         if (match('#')) {
-            Value* value;
-            if ((value = getValue())) {
+            Value* value = getValue();
+            if (value) {
                 return new Quote(value);
             } else {
                 error("can not match value for #");
