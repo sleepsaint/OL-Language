@@ -7,22 +7,23 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "OLValue.h"
 
 @interface OLSourceValue : NSObject
-- (id<OLValue>) lookup:(id<OLValue>)root temp:(id<OLValue>)temp now:(id<OLValue>)now;
+- (id) lookup:(id)root temp:(id)temp now:(id)now;
++ (id) autoLookup:(id)root temp:(id)temp now:(id)now current:(id)current;
 @end
 
 @interface OLString : OLSourceValue {
     NSString* _value;
 }
-- (id<OLValue>) lookup:(id<OLValue>)root temp:(id<OLValue>)temp now:(id<OLValue>)now;
+- (id) lookup:(id)root temp:(id)temp now:(id)now;
 + (instancetype) value:(NSString*)string;
 @end
 
 @interface OLNumber : OLSourceValue {
-    double _value;
+    NSNumber* _value;
 }
+- (id) lookup:(id)root temp:(id)temp now:(id)now;
 + (instancetype) value:(double)number;
 @end
 
@@ -30,6 +31,7 @@
     int _root;
     NSArray* _keys;
 }
+- (id) lookup:(id)root temp:(id)temp now:(id)now;
 + (instancetype) root:(int)root keys:(NSArray*)keys;
 @end
 
@@ -37,17 +39,20 @@
     OLSourceValue* _head;
     NSArray* _tail;
 }
+- (id) lookup:(id)root temp:(id)temp now:(id)now;
 + (instancetype) head:(OLSourceValue*)head tail:(NSArray*)tail;
 @end
 
 @interface OLNegative : OLSourceValue {
     OLSourceValue* _value;
 }
+- (id) lookup:(id)root temp:(id)temp now:(id)now;
 + (instancetype) value:(OLSourceValue*)value;
 @end
 
 @interface OLQuote : OLSourceValue {
     OLSourceValue* _value;
 }
+- (id) lookup:(id)root temp:(id)temp now:(id)now;
 + (instancetype) value:(OLSourceValue*)value;
 @end

@@ -8,6 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
-@protocol OLValue <NSObject>
+@interface NSString (OLValue)
+- (id) getValueByKey:(id)key;
+@end
 
+@interface NSNumber (OLValue)
+- (id) getValueByKey:(id)key;
+@end
+
+@interface NSArray (OLValue)
+- (id) getValueByKey:(id)key;
+@end
+
+@interface NSDictionary (OLValue)
+- (id) getValueByKey:(id)key;
 @end

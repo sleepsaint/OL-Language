@@ -11,6 +11,8 @@
 		4E09B3601A5D663D0085474F /* OLSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E09B35F1A5D663D0085474F /* OLSource.m */; };
 		4E09B3631A5D66580085474F /* OLSourceValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E09B3621A5D66580085474F /* OLSourceValue.m */; };
 		4E09B3661A5D731A0085474F /* OLBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E09B3651A5D731A0085474F /* OLBuffer.m */; };
+		4EBA3CE61A5E5250008D7840 /* OLValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA3CE51A5E5250008D7840 /* OLValue.m */; };
+		4EBA3CE91A5E6382008D7840 /* OLFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA3CE81A5E6382008D7840 /* OLFunction.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -35,6 +37,9 @@
 		4E09B3641A5D731A0085474F /* OLBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OLBuffer.h; sourceTree = "<group>"; };
 		4E09B3651A5D731A0085474F /* OLBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OLBuffer.m; sourceTree = "<group>"; };
 		4E09B3671A5E0BE20085474F /* OLValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OLValue.h; sourceTree = "<group>"; };
+		4EBA3CE51A5E5250008D7840 /* OLValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OLValue.m; sourceTree = "<group>"; };
+		4EBA3CE71A5E6382008D7840 /* OLFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OLFunction.h; sourceTree = "<group>"; };
+		4EBA3CE81A5E6382008D7840 /* OLFunction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OLFunction.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +80,9 @@
 				4E09B3641A5D731A0085474F /* OLBuffer.h */,
 				4E09B3651A5D731A0085474F /* OLBuffer.m */,
 				4E09B3671A5E0BE20085474F /* OLValue.h */,
+				4EBA3CE51A5E5250008D7840 /* OLValue.m */,
+				4EBA3CE71A5E6382008D7840 /* OLFunction.h */,
+				4EBA3CE81A5E6382008D7840 /* OLFunction.m */,
 			);
 			path = "ol-objc";
 			sourceTree = "<group>";
@@ -135,6 +143,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EBA3CE91A5E6382008D7840 /* OLFunction.m in Sources */,
+				4EBA3CE61A5E5250008D7840 /* OLValue.m in Sources */,
 				4E09B3631A5D66580085474F /* OLSourceValue.m in Sources */,
 				4E09B3581A5D65B60085474F /* main.m in Sources */,
 				4E09B3661A5D731A0085474F /* OLBuffer.m in Sources */,
