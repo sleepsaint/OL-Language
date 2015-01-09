@@ -26,8 +26,8 @@ void test_lookup() {
     for (NSString* s in lookup_test) {
         id value = [[OLSource parse:s] lookup:root_json temp:temp_json now:root_json];
         if (value) {
-            printf("%s\n", s.UTF8String);
-            printf("%s\n", [value stringValue].UTF8String);
+            NSLog(@"%@", s);
+            NSLog(@"%@", value);
         }
     }
 }

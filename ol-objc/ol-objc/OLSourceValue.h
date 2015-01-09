@@ -10,7 +10,7 @@
 
 @interface OLSourceValue : NSObject
 - (id) lookup:(id)root temp:(id)temp now:(id)now;
-+ (id) autoLookup:(id)root temp:(id)temp now:(id)now current:(id)current;
+- (NSComparisonResult) compare3:(id)root temp:(id)temp a:(id)a b:(id)b;
 @end
 
 @interface OLString : OLSourceValue {
@@ -32,6 +32,7 @@
     NSArray* _keys;
 }
 - (id) lookup:(id)root temp:(id)temp now:(id)now;
+- (NSArray*) sort:(NSArray*)array root:(id)root temp:(id)temp;
 + (instancetype) root:(int)root keys:(NSArray*)keys;
 @end
 
@@ -40,6 +41,7 @@
     NSArray* _tail;
 }
 - (id) lookup:(id)root temp:(id)temp now:(id)now;
+- (NSArray*) sort:(NSArray*)array root:(id)root temp:(id)temp;
 + (instancetype) head:(OLSourceValue*)head tail:(NSArray*)tail;
 @end
 
@@ -47,6 +49,7 @@
     OLSourceValue* _value;
 }
 - (id) lookup:(id)root temp:(id)temp now:(id)now;
+- (NSArray*) sort:(NSArray*)array root:(id)root temp:(id)temp;
 + (instancetype) value:(OLSourceValue*)value;
 @end
 
@@ -56,3 +59,5 @@
 - (id) lookup:(id)root temp:(id)temp now:(id)now;
 + (instancetype) value:(OLSourceValue*)value;
 @end
+
+id autoLookup(id root, id temp, id now, id current);

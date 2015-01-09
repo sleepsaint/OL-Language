@@ -16,15 +16,18 @@
 - (id) lookup:(id)root temp:(id)temp now:(id)now {
     return nil;
 }
+- (NSComparisonResult) compare3:(id)root temp:(id)temp a:(id)a b:(id)b {
+    return [[self lookup:root temp:temp now:a] compare2:[self lookup:root temp:temp now:b]];
+}
+@end
 
-+ (id) autoLookup:(id)root temp:(id)temp now:(id)now current:(id)current {
+id autoLookup(id root, id temp, id now, id current) {
     while ([current isKindOfClass: NSString.class]) {
         OLSourceValue* source = [OLSource parse:current];
         current = [source lookup:root temp:temp now:now];
     }
     return current;
 }
-@end
 
 @implementation OLString
 
@@ -78,7 +81,7 @@
     }
     for (OLSourceValue* k in _keys) {
         id key = [k lookup:root temp:temp now:now];
-        current = [OLSourceValue autoLookup:root temp:temp now:now current:current];
+        current = autoLookup(root, temp, now, current);
         if (key && current) {
             current = [current getValueByKey:key];
         } else {
@@ -86,6 +89,11 @@
         }
     }
     return current;
+}
+- (NSArray*) sort:(NSArray*)array root:(id)root temp:(id)temp {
+    return [array sortedArrayUsingComparator:^(id a, id b){
+        return [self compare3:root temp:temp a:a b:b];
+    }];
 }
 
 @end
@@ -103,13 +111,26 @@
     if (name) {
         NSMutableArray* params = [NSMutableArray arrayWithCapacity:_tail.count];
         for (OLSourceValue* s in _tail) {
-            [params addObject:[s lookup:root temp:temp now:now]];
+            id value = [s lookup:root temp:temp now:now];
+            [params addObject:value?value:[NSNull null]];
         }
         return [OLFunction calc:name params:params root:root temp:temp now:now];
     }
     return nil;
 }
-
+- (NSArray*) sort:(NSArray*)array root:(id)root temp:(id)temp {
+    return [array sortedArrayUsingComparator:^(id a, id b){
+        NSComparisonResult ret = [self->_head compare3:root temp:temp a:a b:b];
+        for (OLSourceValue* s in self->_tail) {
+            if (ret != NSOrderedSame) {
+                return ret;
+            } else {
+                ret = [s compare3:root temp:temp a:a b:b];
+            }
+        }
+        return ret;
+    }];
+}
 @end
 
 @implementation OLNegative
@@ -120,7 +141,12 @@
     return ret;
 }
 - (id) lookup:(id)root temp:(id)temp now:(id)now {
-    return nil;
+    return [NSNumber numberWithBool:![[_value lookup:root temp:temp now:now] boolValue]];
+}
+- (NSArray*) sort:(NSArray*)array root:(id)root temp:(id)temp {
+    return [array sortedArrayUsingComparator:^(id a, id b){
+        return -[self->_value compare3:root temp:temp a:a b:b];
+    }];
 }
 
 @end
