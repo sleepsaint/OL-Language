@@ -56,6 +56,14 @@
     }
     return ret;
 }
+- (id) some:(id)function root:(id)root temp:(id)temp {
+    for (id now in self) {
+        if ([[function lookup:root temp:temp now:now] boolValue]) {
+            return [NSNumber numberWithBool:YES];
+        }
+    }
+    return [NSNumber numberWithBool:NO];
+}
 - (NSArray*) arrayValue {
     return self;
 }
@@ -75,6 +83,15 @@
     }
     return ret;
 }
+- (id) some:(id)function root:(id)root temp:(id)temp {
+    for (id key in self) {
+        if ([[function lookup:root temp:temp now:[self objectForKey:key]] boolValue]) {
+            return [NSNumber numberWithBool:YES];
+        }
+    }
+    return [NSNumber numberWithBool:NO];
+}
+
 - (NSArray*) arrayValue {
     return self.allValues;
 }

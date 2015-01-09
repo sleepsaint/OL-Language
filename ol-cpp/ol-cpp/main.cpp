@@ -104,8 +104,8 @@ void PP(FUNC func) {
 int main(int argc, const char * argv[]) {
   
 //        test_parse();
-//    PP(test_lookup2);
+    PP(test_lookup2);
 //    test_parse_json();
-    test_lookup();
+//    test_lookup();
     return 0;
 }

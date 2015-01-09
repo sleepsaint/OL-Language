@@ -81,8 +81,25 @@ static NSDictionary* FunctionTable;
                           @"sort":^(NSArray* params, id root, id temp, id now) {
                               NSArray* array = [autoLookup(root, temp, now, params[0]) arrayValue];
                               return [autoLookup(root, temp, now, params[1]) sort:array root:root temp:temp];
+                          },
+                          @"some":^(NSArray* params, id root, id temp, id now) {
+                              return [autoLookup(root, temp, now, params[0]) some:autoLookup(root, temp, now, params[1]) root:root temp:temp];
+                          },
+                          @"random":^(NSArray* params, id root, id temp, id now) {
+                              double ret = (double)arc4random() / (double)UINT32_MAX;
+                              switch (params.count) {
+                                  case 0:
+                                      break;
+                                  case 1:
+                                      ret = floor(ret * [params[0] doubleValue]);
+                                      break;
+                                  default:
+                                      ret = [params[0] doubleValue] + floor(ret * ([params[1] doubleValue] - [params[0] doubleValue]));
+                                      break;
+                              }
+                              return [NSNumber numberWithDouble:ret];
                           }
-                            };
+                          };
     }
     id (^function)(NSArray*,id,id,id) = FunctionTable[name];
     if (function) {

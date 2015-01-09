@@ -21,12 +21,14 @@
 @interface NSArray (OLValue)
 - (id) getValueByKey:(id)key;
 - (id) filter:(id)function root:(id)root temp:(id)temp;
+- (id) some:(id)function root:(id)root temp:(id)temp;
 - (NSArray*) arrayValue;
 @end
 
 @interface NSDictionary (OLValue)
 - (id) getValueByKey:(id)key;
 - (id) filter:(id)function root:(id)root temp:(id)temp;
+- (id) some:(id)function root:(id)root temp:(id)temp;
 - (NSArray*) arrayValue;
 @end
 
