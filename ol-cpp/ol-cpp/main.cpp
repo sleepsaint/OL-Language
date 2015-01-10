@@ -89,7 +89,9 @@ void test_parse_json() {
     auto json = OL::JSON::parse(root.c_str(), root.length());
     cout << json->description() << endl;
 }
-
+void test_parse_json2() {
+    auto json = OL::JSON::parse(root.c_str(), root.length());
+}
 typedef void (*FUNC)();
 
 void PP(FUNC func) {
@@ -104,7 +106,7 @@ void PP(FUNC func) {
 int main(int argc, const char * argv[]) {
   
 //        test_parse();
-    PP(test_lookup2);
+    PP(test_parse_json2);
 //    test_parse_json();
 //    test_lookup();
     return 0;

@@ -26,6 +26,11 @@ struct OLArray {
     size_t count;
 };
 
+OLArray* OLArrayCreate();
+OLArray* OLArrayCleanup(OLArray* array);
+OLValue* OLArrayAppend(OLArray* array);
+OLValue OLArrayAtIndex(OLArray* array, size_t index);
+
 struct OLValue {
     OLType type;
     union {
@@ -36,16 +41,15 @@ struct OLValue {
         OLPair* pairValue;
     };
 };
+OLValue* OLValueCleanup(OLValue* value);
+void OLValuePrint(OLValue value);
 
 struct OLPair {
-    char* key;
+    OLValue key;
     OLValue value;
 };
+OLPair* OLPairCreate();
+OLPair* OLPairCleanup(OLPair* pair);
 
-OLArray* createOLArray();
-inline OLArray* cleanupOLArray(OLArray* array);
-inline void appendOLArray(OLArray* array, OLValue value);
-inline OLValue valueAtIndex(OLArray* array, size_t index);
-OLValue* cleanupOLValue(OLValue* value);
-extern OLValue nullValue;
+extern OLValue OLNullValue;
 #endif /* defined(__ol_c__olvalue__) */
