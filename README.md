@@ -8,7 +8,7 @@ OL is designed to get value from a tree. It regards a tree as an object and use 
 
 + _delimiter_ = ~|!|@|^|(|)|{|}|,|.|#
 + _string_ = [^#_delimiter_]+
-+ _number_ = $_string_(._string_)?
++ _number_ = __$___string_(._string_)?
 
 ___NOTE___:
 
@@ -17,8 +17,7 @@ ___NOTE___:
 
 ##Syntax
 
-+ _value_ → _literal_|_path_|_list_|_negative_|_quote_
-+ _literal_ → ___number___|___string___
++ _value_ → ___number___|___string___|_path_|_list_|_negative_|_quote_
 + _path_ → (__^__|__@__|__~__)[._key_]*
 + _key_ → ___string___|_list_|_fragment_
 + _fragment_ → __{__*path*__}__
