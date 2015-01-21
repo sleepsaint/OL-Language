@@ -112,7 +112,6 @@ namespace OL {
             if (getPair(object)) {
                 while (match(',')) {
                     if (!getPair(object)) {
-                        delete object;
                         return nullptr;
                     }
                 }
@@ -120,7 +119,6 @@ namespace OL {
             if (match('}')) {
                 return object;
             } else {
-                delete object;
             }
         }
         return nullptr;
@@ -132,15 +130,12 @@ namespace OL {
             if (getElement(array)) {
                 while (match(',')) {
                     if (!getElement(array)) {
-                        delete array;
                         return nullptr;
                     }
                 }
             }
             if (match(']')) {
                 return array;
-            } else {
-                delete array;
             }
         }
         return nullptr;
@@ -151,7 +146,7 @@ namespace OL {
         if (match(STRING_TOKEN) && match(':')) {
             Value* value = getValue();
             if (value) {
-                (*object)[key] = ValuePtr(value);
+                (*object)[key] = value;
                 return true;
             }
         }

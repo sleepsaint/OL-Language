@@ -29,11 +29,11 @@ namespace OL {
         double _tokenNumber;
         bool _tokenBool;
     public:
-        static ValuePtr parse(const char* source, size_t length) {
-            return ValuePtr(JSON(source, length).getValue());
+        static Value* parse(const char* source, size_t length) {
+            return JSON(source, length).getValue();
         }
-        static ValuePtr parse(const std::string& source) {
-            return ValuePtr(JSON(source.c_str(), source.length()).getValue());
+        static Value* parse(const std::string& source) {
+            return JSON(source.c_str(), source.length()).getValue();
         }
     private:
         JSON(const char* source, size_t length);

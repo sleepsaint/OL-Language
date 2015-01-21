@@ -14,109 +14,109 @@
 using namespace std;
 using namespace OL;
 
-typedef ValuePtr (*FUNC) (const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now);
+typedef Value* (*FUNC) (const std::vector<Value*>& params, Value* root, Value* temp, Value* now);
 
 static map<string, FUNC> table {
-    {"+", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
+    {"+", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
         double ret = 0;
         for (auto& i: params) {
             ret += i->toNumber();
         }
-        return ValuePtr(new Number(ret));
+        return new Number(ret);
     }
     },
-    {"-", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Number(params[0]->toNumber() - params[1]->toNumber()));
+    {"-", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Number(params[0]->toNumber() - params[1]->toNumber());
     }
     },
-    {"*", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        if (params.size() == 0) return ValuePtr(new Number(0));
+    {"*", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        if (params.size() == 0) return new Number(0);
             double ret = 1;
             for (auto& i: params) {
                 ret *= i->toNumber();
             }
-        return ValuePtr(new Number(ret));
+        return new Number(ret);
     }
     },
-    {"/", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Number(params[0]->toNumber() / params[1]->toNumber()));
+    {"/", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Number(params[0]->toNumber() / params[1]->toNumber());
     }
     },
-    {">", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Bool(params[0]->compare(params[1].get()) > 0));
+    {">", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Bool(params[0]->compare(params[1]) > 0);
     }
     },
-    {">=", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Bool(params[0]->compare(params[1].get()) >= 0));
+    {">=", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Bool(params[0]->compare(params[1]) >= 0);
     }
     },
-    {"=", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Bool(params[0]->compare(params[1].get()) == 0));
+    {"=", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Bool(params[0]->compare(params[1]) == 0);
     }
     },
-    {"<", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Bool(params[0]->compare(params[1].get()) < 0));
+    {"<", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Bool(params[0]->compare(params[1]) < 0);
     }
     },
-    {"<=", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Bool(params[0]->compare(params[1].get()) <= 0));
+    {"<=", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Bool(params[0]->compare(params[1]) <= 0);
     }
     },
-    {"!=", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Bool(params[0]->compare(params[1].get()) != 0));
+    {"!=", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Bool(params[0]->compare(params[1]) != 0);
     }
     },
-    {"not", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        return ValuePtr(new Bool(!(params[0] && *params[0])));
+    {"not", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return new Bool(!(params[0] && *params[0]));
     }
     },
-    {"or", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
+    {"or", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
         for (const auto& i : params) {
             if (i && *i) {
-                return ValuePtr(new Bool(true));
+                return new Bool(true);
             }
         }
-        return ValuePtr(new Bool(false));
+        return new Bool(false);
     }
     },
-    {"and", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
+    {"and", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
         for (const auto& i : params) {
             if (!(i && *i)) {
-                return ValuePtr(new Bool(false));
+                return new Bool(false);
             }
         }
-        return ValuePtr(new Bool(params.size() > 0));
+        return new Bool(params.size() > 0);
     }
     },
     
-    {"filter", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        ValuePtr container = autoLookup(params[0], root, temp, now);
-        ValuePtr func = autoLookup(params[1], root, temp, now);
+    {"filter", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        Value* container = autoLookup(params[0], root, temp, now);
+        Value* func = autoLookup(params[1], root, temp, now);
         if (container && func) {
             return container->filter(func, root, temp);
         }
         return nullptr;
     }},
-    {"sort", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        ValuePtr container = autoLookup(params[0], root, temp, now);
-        ValuePtr func = autoLookup(params[1], root, temp, now);
+    {"sort", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        Value* container = autoLookup(params[0], root, temp, now);
+        Value* func = autoLookup(params[1], root, temp, now);
         if (container && func) {
             auto array = new Array;
             container->toArray(array->_value);
             func->sort(array->_value, root, temp);
-            return ValuePtr(array);
+            return array;
         }
         return nullptr;
     }},
-    {"some", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
-        ValuePtr container = autoLookup(params[0], root, temp, now);
-        ValuePtr func = autoLookup(params[1], root, temp, now);
+    {"some", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        Value* container = autoLookup(params[0], root, temp, now);
+        Value* func = autoLookup(params[1], root, temp, now);
         if (container && func) {
-            return ValuePtr(new Bool(container->some(func, root, temp)));
+            return new Bool(container->some(func, root, temp));
         }
         return nullptr;
     }},
-    {"random", [](const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now)->ValuePtr {
+    {"random", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
         double ret = (double)arc4random() / (double)UINT_MAX;
         switch (params.size()) {
             case 0:
@@ -127,14 +127,14 @@ static map<string, FUNC> table {
             default:
                 ret = params[0]->toNumber() + floor((params[1]->toNumber() - params[0]->toNumber()) * ret);
         }
-        return ValuePtr(new Number(ret));
+        return new Number(ret);
     }}
     
 };
 
 namespace OL {
     
-    ValuePtr calc(const string& name, const std::vector<ValuePtr>& params, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
+    Value* calc(const string& name, const std::vector<Value*>& params, Value* root, Value* temp, Value* now) {
         auto f = table.find(name);
         if (f != table.end()) {
             return f->second(params, root, temp, now);

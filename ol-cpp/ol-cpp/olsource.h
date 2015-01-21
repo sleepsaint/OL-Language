@@ -29,8 +29,8 @@ namespace OL {
         bool _tokenBool;
         std::string _errorLog;
     public:
-        static ValuePtr parse(const char* source, size_t length);
-        static ValuePtr parse(const std::string& source);
+        static Value* parse(const char* source, size_t length);
+        static Value* parse(const std::string& source);
     private:
         Source(const char* source, size_t length);
         void nextToken();

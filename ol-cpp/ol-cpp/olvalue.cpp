@@ -17,6 +17,19 @@ using namespace std;
 
 namespace OL {
     
+    static vector<Value*> autoReleasePool;
+    
+    Value* Value::autoRelease() {
+        autoReleasePool.push_back(this);
+        return this;
+    }
+    
+    void Value::doAutoRelease() {
+        for (auto& i : autoReleasePool) {
+            i->release();
+        }
+        autoReleasePool.clear();
+    }
     
     string Number::description() {
         if ((int)_value == _value) {
@@ -88,10 +101,10 @@ namespace OL {
         return _value ? "true" : "false";
     }
     
-    ValuePtr autoLookup(const ValuePtr& call, const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
-        ValuePtr ret = call;
+    Value* autoLookup(Value* call, Value* root, Value* temp, Value* now) {
+        Value* ret = call;
         while (typeid(*ret) == typeid(String)) {
-            ValuePtr source = Source::parse(ret->description());
+            Value* source = Source::parse(ret->description());
             if (source) {
                 ret = source->lookup(root, temp, now);
             }
@@ -99,8 +112,8 @@ namespace OL {
         return ret;
     }
     
-    ValuePtr Path::lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
-        ValuePtr current;
+    Value* Path::lookup(Value* root, Value* temp, Value* now) {
+        Value* current;
         switch (_root) {
             case '^':
                 current = root;
@@ -126,20 +139,20 @@ namespace OL {
         return current;
     }
     
-    ValuePtr List::lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
-        ValuePtr name = _head->lookup(root, temp, now);
+    Value* List::lookup(Value* root, Value* temp, Value* now) {
+        Value* name = _head->lookup(root, temp, now);
         if (name) {
-            vector<ValuePtr> params;
+            vector<Value*> params;
             params.resize(_tail.size());
-            transform(_tail.begin(), _tail.end(), params.begin(), [=](ValuePtr v)->ValuePtr{return v->lookup(root, temp, now);});
+            transform(_tail.begin(), _tail.end(), params.begin(), [=](Value* v)->Value*{return v->lookup(root, temp, now);});
             return calc(name->description(), params, root, temp, now);
         }
         return nullptr;
     }
     
-    ValuePtr Negative::lookup(const ValuePtr& root, const ValuePtr& temp, const ValuePtr& now) {
-        ValuePtr p = _value->lookup(root, temp, now);
-        return ValuePtr(new Bool(!(p && *p)));
+    Value* Negative::lookup(Value* root, Value* temp, Value* now) {
+        Value* p = _value->lookup(root, temp, now);
+        return new Bool(!(p && *p));
     }
     template<typename T> int compare(const T& a, const T& b) {
         if (a > b) {
@@ -178,38 +191,38 @@ namespace OL {
         return 0;
     }
     
-    ValuePtr Array::filter(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
+    Value* Array::filter(Value* func, Value* root, Value* temp) {
         Array* ret = new Array;
         ret->_value.resize(_value.size());
         auto it = copy_if(_value.begin(), _value.end(), ret->_value.begin(),
-                          [=](ValuePtr& v)->bool{
-                              ValuePtr p = func->lookup(root, temp, v);
-                              return p ? *p : false;
+                          [=](Value*& v)->bool{
+                              Value* p = func->lookup(root, temp, v);
+                              return p && *p;
                           });
         ret->_value.resize(distance(ret->_value.begin(), it));
-        return ValuePtr(ret);
+        return ret;
     }
 
-    ValuePtr Object::filter(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
+    Value* Object::filter(Value* func, Value* root, Value* temp) {
         Object* ret = new Object;
         for (auto i : _value) {
-            ValuePtr p = func->lookup(root, temp, i.second);
+            Value* p = func->lookup(root, temp, i.second);
             if (p && *p) {
                 ret->_value[i.first] = i.second;
             }
         }
-        return ValuePtr(ret);
+        return ret;
     }
     
-    inline int compare(const ValuePtr& a, const ValuePtr& b, Value* call, ValuePtr root, ValuePtr temp) {
+    inline int compare(Value* a, Value* b, Value* call, Value* root, Value* temp) {
         if (a && b) {
             Negative* negative = dynamic_cast<Negative*>(call);
             if (negative) {
-                return -compare(a, b, negative->_value.get(), root, temp);
+                return -compare(a, b, negative->_value, root, temp);
             } else {
-                ValuePtr left = call->lookup(root, temp, a);
-                ValuePtr right = call->lookup(root, temp, b);
-                return left->compare(right.get());
+                Value* left = call->lookup(root, temp, a);
+                Value* right = call->lookup(root, temp, b);
+                return left->compare(right);
             }
 
         } else {
@@ -217,40 +230,40 @@ namespace OL {
         }
     }
     
-    void Path::sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
-        ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
+    void Path::sort(std::vector<Value*>& array, Value* root, Value* temp) {
+        ::sort(array.begin(), array.end(), [=](Value* a, Value* b)->bool{
             int ret = ::OL::compare(a, b, this, root, temp);
             return ret < 0;
         });
     }
 
-    void List::sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
-        ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
-            int ret = ::OL::compare(a, b, _head.get(), root, temp);
+    void List::sort(std::vector<Value*>& array, Value* root, Value* temp) {
+        ::sort(array.begin(), array.end(), [=](Value* a, Value* b)->bool{
+            int ret = ::OL::compare(a, b, _head, root, temp);
             for (const auto& i : _tail) {
                 if (ret != 0) {
                     return ret < 0;
                 } else {
-                    ret = ::OL::compare(a, b, i.get(), root, temp);
+                    ret = ::OL::compare(a, b, i, root, temp);
                 }
             }
             return ret < 0;
         });
     }
     
-    void Negative::sort(std::vector<ValuePtr>& array, const ValuePtr& root, const ValuePtr& temp) {
-        ::sort(array.begin(), array.end(), [=](const ValuePtr& a, const ValuePtr& b)->bool{
-            int ret = ::OL::compare(a, b, _value.get(), root, temp);
+    void Negative::sort(std::vector<Value*>& array, Value* root, Value* temp) {
+        ::sort(array.begin(), array.end(), [=](Value* a, Value* b)->bool{
+            int ret = ::OL::compare(a, b, _value, root, temp);
             return ret > 0;
         });
     }
     
-    void Object::toArray(std::vector<ValuePtr>& v) {
+    void Object::toArray(std::vector<Value*>& v) {
         v.resize(_value.size());
-        transform(_value.begin(), _value.end(), v.begin(), [](const pair<string, ValuePtr>& i)->ValuePtr{return i.second;});
+        transform(_value.begin(), _value.end(), v.begin(), [](const pair<string, Value*>& i)->Value*{return i.second;});
     }
     
-    bool Array::some(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
+    bool Array::some(Value* func, Value* root, Value* temp) {
         for (const auto& i : _value) {
             if (func->lookup(root, temp, i)) {
                 return true;
@@ -259,7 +272,7 @@ namespace OL {
         return false;
     }
     
-    bool Object::some(const ValuePtr& func, const ValuePtr& root, const ValuePtr& temp) {
+    bool Object::some(Value* func, Value* root, Value* temp) {
         for (const auto& i : _value) {
             if (func->lookup(root, temp, i.second)) {
                 return true;
@@ -268,4 +281,28 @@ namespace OL {
         return false;
     }
 
+    Array::~Array() {
+        for (auto& i : _value) {
+            i->release();
+        }
+    }
+    
+    Object::~Object() {
+        for (auto& i : _value) {
+            i.second->release();
+        }
+    }
+    
+    Path::~Path() {
+        for (auto& i : _keys) {
+            i->release();
+        }
+    }
+    
+    List::~List() {
+        for (auto& i : _tail) {
+            i->release();
+        }
+    }
+    
 }

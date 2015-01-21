@@ -161,7 +161,6 @@ namespace OL {
                     path->append(key);
                 } else {
                     error("can not match a key");
-                    delete path;
                     return nullptr;
                 }
             }
@@ -177,7 +176,6 @@ namespace OL {
                 if (match('}')) {
                     return path;
                 } else {
-                    delete path;
                     error("can not match }");
                 }
             } else {
@@ -198,14 +196,12 @@ namespace OL {
                         list->append(item);
                     } else {
                         error("tail can not match a value");
-                        delete list;
                         return nullptr;
                     }
                 }
                 if (match(')')) {
                     return list;
                 } else {
-                    delete list;
                     error("can not match )");
                 }
             }
@@ -237,9 +233,9 @@ namespace OL {
         return nullptr;
     }
     
-    ValuePtr Source::parse(const char *source, size_t length) {
+    Value* Source::parse(const char *source, size_t length) {
         Source s = Source(source, length);
-        auto ret = ValuePtr(s.getValue());
+        auto ret = s.getValue();
         if (!ret) {
             cout << string(source, length) << endl;
             cout << s._errorLog << endl;
@@ -247,7 +243,7 @@ namespace OL {
         return ret;
     }
     
-    ValuePtr Source::parse(const std::string &source) {
+    Value* Source::parse(const std::string &source) {
         return parse(source.c_str(), source.length());
     }
 }

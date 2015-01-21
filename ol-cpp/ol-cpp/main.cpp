@@ -70,7 +70,8 @@ void test_lookup2() {
         auto value = Source::parse(i.c_str(), i.length());
         auto value2 = value->lookup(root_json, temp_json, root_json);
     }
-    
+    OL::Value::doAutoRelease();
+   
 }
 void test_lookup() {
     using namespace OL;
@@ -91,6 +92,8 @@ void test_parse_json() {
 }
 void test_parse_json2() {
     auto json = OL::JSON::parse(root.c_str(), root.length());
+    OL::Value::doAutoRelease();
+
 }
 typedef void (*FUNC)();
 
@@ -107,7 +110,10 @@ int main(int argc, const char * argv[]) {
   
 //        test_parse();
     PP(test_parse_json2);
+    PP(test_lookup2);
 //    test_parse_json();
 //    test_lookup();
+    OL::Value::doAutoRelease();
+//    getchar();
     return 0;
 }
