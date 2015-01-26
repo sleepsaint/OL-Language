@@ -240,7 +240,7 @@ namespace OL {
             cout << string(source, length) << endl;
             cout << s._errorLog << endl;
         }
-        return ret;
+        return ret->autoRelease();
     }
     
     Value* Source::parse(const std::string &source) {

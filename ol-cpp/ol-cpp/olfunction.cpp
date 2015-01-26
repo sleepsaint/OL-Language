@@ -137,7 +137,7 @@ namespace OL {
     Value* calc(const string& name, const std::vector<Value*>& params, Value* root, Value* temp, Value* now) {
         auto f = table.find(name);
         if (f != table.end()) {
-            return f->second(params, root, temp, now);
+            return f->second(params, root, temp, now)->autoRelease();
         }
         return nullptr;
     }

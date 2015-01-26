@@ -142,6 +142,5 @@ namespace OL {
     };
     
     Value* autoLookup(Value* call, Value* root, Value* temp, Value* now);
-    
 }
 #endif /* defined(__ol_cpp__olvalue__) */

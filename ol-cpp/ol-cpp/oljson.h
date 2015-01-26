@@ -30,10 +30,10 @@ namespace OL {
         bool _tokenBool;
     public:
         static Value* parse(const char* source, size_t length) {
-            return JSON(source, length).getValue();
+            return JSON(source, length).getValue()->autoRelease();
         }
         static Value* parse(const std::string& source) {
-            return JSON(source.c_str(), source.length()).getValue();
+            return JSON(source.c_str(), source.length()).getValue()->autoRelease();
         }
     private:
         JSON(const char* source, size_t length);

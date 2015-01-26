@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <set>
 #include "olvalue.h"
 #include "olsource.h"
 #include "olfunction.h"
@@ -17,10 +18,10 @@ using namespace std;
 
 namespace OL {
     
-    static vector<Value*> autoReleasePool;
+    static set<Value*> autoReleasePool;
     
     Value* Value::autoRelease() {
-        autoReleasePool.push_back(this);
+        autoReleasePool.insert(this);
         return this;
     }
     
@@ -152,7 +153,7 @@ namespace OL {
     
     Value* Negative::lookup(Value* root, Value* temp, Value* now) {
         Value* p = _value->lookup(root, temp, now);
-        return new Bool(!(p && *p));
+        return (new Bool(!(p && *p)))->autoRelease();
     }
     template<typename T> int compare(const T& a, const T& b) {
         if (a > b) {
@@ -300,6 +301,7 @@ namespace OL {
     }
     
     List::~List() {
+        _head->release();
         for (auto& i : _tail) {
             i->release();
         }
