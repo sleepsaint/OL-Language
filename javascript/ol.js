@@ -206,45 +206,79 @@ OL.Source.error = function(e) {
 }
 
 OL.Source.getValue = function() {
-	return this.getString() || this.getNumber() || this.getPath() || this.getList() || this.getNegative() || this.getQuote();
-}
-
-OL.Source.getNumber = function() {
-	if (this.match("n")) {
-		return {type:"number", value:this.tokenNumber, debug:this.debug.literal, lookup:this.lookup.literal };
-	}
-}
-
-OL.Source.getString = function() {
-	if (this.match("s")) {
+	var token = this.token;
+	this.nextToken();
+	switch(token) {
+	case "s":
 		return {type:"string", value:this.tokenString, debug:this.debug.literal, lookup:this.lookup.literal };
+	case "n":
+		return {type:"number", value:this.tokenNumber, debug:this.debug.literal, lookup:this.lookup.literal };
+	case "^":
+	case "@":
+	case "~":
+		return this.getPath(token);
+	case "{":
+		return this.getFragment();
+	case "!":
+		var value = this.getValue();
+		if (value) {
+			return {type:"negative", value:value, debug:this.debug.negative, lookup:this.lookup.negative};
+		} else {
+			this.error("can not match value for !");
+			return;
+		}
+	case "#":
+		var value = this.getValue();
+		if (value) {
+			return {type:"quote", value:value, debug:this.debug.quote, lookup:this.lookup.quote};
+		} else {
+			this.error("can not match value for #");
+			return;
+		}
+	case "(":
+		return this.getList();
+	default:
+		;
 	}
 }
 
-OL.Source.getPath = function() {
-	var root = this.token;
-	if (this.match("^") || this.match("~") || this.match("@")) {
-		var keys = [];
-		while (this.match(".")) {
-			var key = this.getKey();
-			if (key) {
-				keys.push(key);
-			} else {
-				this.error("can not match a key");
-				return;
-			}
+OL.Source.getPath = function(root) {
+	var keys = [];
+	while (this.match(".")) {
+		var key = this.getKey();
+		if (key) {
+			keys.push(key);
+		} else {
+			this.error("can not match a key");
+			return;
 		}
-		return {type:"path", root:root, keys:keys, debug:this.debug.path, lookup:this.lookup.path};
-	} 
+	}
+	return {type:"path", root:root, keys:keys, debug:this.debug.path, lookup:this.lookup.path};
 }
 
 OL.Source.getKey = function() {
-	return this.getString() || this.getFragment() || this.getList();
+	var token = this.token;
+	this.nextToken();
+	switch(token) {
+	case "s":
+		return {type:"string", value:this.tokenString, debug:this.debug.literal, lookup:this.lookup.literal };
+	case "{":
+		return this.getFragment();
+	case "(":
+		return this.getList();
+	default:
+		;
+	}
 }
 
 OL.Source.getFragment = function() {
-	if (this.match("{")) {
-		var ret = this.getPath();
+	var token = this.token;
+	this.nextToken();
+	switch(token) {
+	case "@":
+	case "^":
+	case "~":
+		var ret = this.getPath(token);
 		if (ret) {
 			if (this.match("}")) {
 				return ret;
@@ -254,53 +288,32 @@ OL.Source.getFragment = function() {
 		} else {
 			this.error("in {} must a path");
 		}
+	default:
+		;
 	}
+	
 }
 
 OL.Source.getList = function() {
-    if (this.match("(")) {
-		var head = this.getValue();
-		if (head) {
-			var tail = [];
-			while (this.match(",")) {
-				var value = this.getValue();
-				if (value) {
-					tail.push(value);
-				} else {
-					this.error("tail can not match a value");
-					return;
-				}
-			}
-			if (this.match(")")) {		
-				return {type:"list", head:head, tail:tail, debug:this.debug.list, lookup:this.lookup.list};
+	var head = this.getValue();
+	if (head) {
+		var tail = [];
+		while (this.match(",")) {
+			var value = this.getValue();
+			if (value) {
+				tail.push(value);
 			} else {
-				this.error("can not match )");
+				this.error("tail can not match a value");
+				return;
 			}
-		} else {
-			this.error("function must have a head");
 		}
-    }
-}
-
-OL.Source.getNegative = function() {
-	if (this.match("!")) {
-		var value = this.getValue();
-		if (value) {
-			return {type:"negative", value:value, debug:this.debug.negative, lookup:this.lookup.negative};
+		if (this.match(")")) {		
+			return {type:"list", head:head, tail:tail, debug:this.debug.list, lookup:this.lookup.list};
 		} else {
-			this.error("can not match value for !");
+			this.error("can not match )");
 		}
-	}
-}
-
-OL.Source.getQuote = function() {
-	if (this.match("#")) {
-		var value = this.getValue();
-		if (value) {
-			return {type:"quote", value:value, debug:this.debug.quote, lookup:this.lookup.quote};
-		} else {
-			this.error("can not match value for #")
-		}
+	} else {
+		this.error("function must have a head");
 	}
 }
 
