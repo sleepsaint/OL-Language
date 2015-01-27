@@ -12,23 +12,25 @@
 
 using namespace std;
 
+vector<string> test2 = {
+    "^.wear.{^.person.{~.person}.wear.hat}.price",
+    "#(abd,bdf)",
+    "(abd, adfsdf, asdfd, ",
+    "!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )",
+    "!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12)",
+    "!()",
+    "!(abd, !@.123.abd.{@.abd}.)",
+    "(abd, !@.123.abd.$123.{@.abd})",
+    "(abd, sdfe",
+    "(abd, !@.123.abd.123.{@.abd.{~.abd})",
+    "(abd, !@.123.abd.123.{@.abd.{.abd})",
+    "(abd, !)"
+};
+
+
 void test_parse() {
-    vector<string> test = {
-        "^.wear.{^.person.{~.person}.wear.hat}.price",
-        "#(abd,bdf)",
-        "(abd, adfsdf, asdfd, ",
-        "!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )",
-        "!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12)",
-        "!()",
-        "!(abd, !@.123.abd.{@.abd}.)",
-        "(abd, !@.123.abd.$123.{@.abd})",
-        "(abd, sdfe",
-        "(abd, !@.123.abd.123.{@.abd.{~.abd})",
-        "(abd, !@.123.abd.123.{@.abd.{.abd})",
-        "(abd, !)"
-    };
     
-    for (const auto& i : test) {
+    for (const auto& i : test2) {
         auto value = OL::Source::parse(i.c_str(), i.length());
         if (value) {
             cout << value->description() << endl;
@@ -36,7 +38,13 @@ void test_parse() {
     }
     
 }
-
+void test_parse2() {
+    
+    for (const auto& i : test2) {
+        OL::Source::parse(i.c_str(), i.length());
+    }
+    
+}
 string root = "{\"person\":{\"P0001\":{\"name\":\"Tom\",\"age\":30,\"wear\":{\"hat\":\"W0001\",\"upper\":\"W0002\",\"under\":\"W0003\",\"shoes\":null}},\"P0002\":{\"name\":\"May\",\"age\":25,\"wear\":{\"hat\":\"W0004\",\"upper\":\"W0005\",\"under\":\"W0006\",\"shoes\":\"W0007\"}}},\"wear\":{\"W0001\":{\"name\":\"Red Hat\",\"price\":100},\"W0002\":{\"name\":\"White Jacket\",\"price\":200},\"W0003\":{\"name\":\"Black Shorts\",\"price\":50},\"W0004\":{\"name\":\"White Hat\",\"price\":210},\"W0005\":{\"name\":\"Red Jacket\",\"price\":220},\"W0006\":{\"name\":\"White Skirt\",\"price\":60},\"W0007\":{\"name\":\"Red HHS\",\"price\":10}}}";
 
 string temp = "{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"#(>, @.price, $150)\",\"wearsorter1\":\"#(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}";
@@ -106,10 +114,13 @@ void PP(FUNC func) {
 
 int main(int argc, const char * argv[]) {
   
-//        test_parse();
+//    test_parse();
+//    PP(test_parse2);
+//    test_parse_json();
 //    PP(test_parse_json2);
-//    PP(test_lookup2);
-    test_lookup();
+    PP(test_lookup2);
+//    test_lookup();
+    OL::Value::doAutoRelease();
 //    getchar();
     return 0;
 }

@@ -39,24 +39,7 @@ namespace OL {
         JSON(const char* source, size_t length);
         void nextToken();
         void unescape();
-        Value* getValue() {
-            Value* ret;
-            if ((ret = getString())) {
-                return ret;
-            } else if ((ret = getNumber())) {
-                return ret;
-            } else if ((ret = getObject())) {
-                return ret;
-            } else if ((ret = getArray())) {
-                return ret;
-            } else if ((ret = getBool())) {
-                return ret;
-            } else if ((ret = getNull())) {
-                return ret;
-            } else {
-                return nullptr;
-            }
-        }
+        Value* getValue();
         bool match(int expected) {
             if (_token == expected) {
                 nextToken();
@@ -67,10 +50,6 @@ namespace OL {
         }
         Value* getObject();
         Value* getArray();
-        Value* getNumber();
-        Value* getString();
-        Value* getBool();
-        Value* getNull();
         bool getPair(Object* object);
         bool getElement(Array* array);
     };

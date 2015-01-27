@@ -31,6 +31,7 @@ namespace OL {
     public:
         static Value* parse(const char* source, size_t length);
         static Value* parse(const std::string& source);
+        static bool debug;
     private:
         Source(const char* source, size_t length);
         void nextToken();
@@ -46,41 +47,11 @@ namespace OL {
         void error(const std::string& e);
         Quote* getNumber();
         Quote* getString();
-        Path* getPath();
-        Value* getKey(){
-            Value* ret;
-            if ((ret = getString())) {
-                return ret;
-            } else if ((ret = getFragment())) {
-                return ret;
-            } else if ((ret = getList())) {
-                return ret;
-            } else {
-                return nullptr;
-            }
-        }
+        Path* getPath(int root);
+        Value* getKey();
         Path* getFragment();
         List* getList();
-        Negative* getNegative();
-        Quote* getQuote();
-        Value* getValue() {
-            Value* ret;
-            if ((ret = getString())) {
-                return ret;
-            } else if ((ret = getNumber())) {
-                return ret;
-            } else if ((ret = getPath())) {
-                return ret;
-            } else if ((ret = getList())) {
-                return ret;
-            } else if ((ret = getNegative())) {
-                return ret;
-            } else if ((ret = getQuote())) {
-                return ret;
-            } else {
-                return nullptr;
-            }
-        }
+        Value* getValue();
     };
 }
 

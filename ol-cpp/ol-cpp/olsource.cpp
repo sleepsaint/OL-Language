@@ -18,6 +18,8 @@ namespace OL {
         None, String, Number
     };
     
+    bool Source::debug = false;
+    
     Source::Source(const char* source, size_t length)
     : _source(source), _end(source + length), _cursor(source), _token(0) {
         nextToken();
@@ -130,7 +132,7 @@ namespace OL {
     }
     
     void Source::error(const std::string &e) {
-        if (_errorLog.empty()) {
+        if (debug && _errorLog.empty()) {
             ostringstream s;
             s <<  e <<  " at " << (_cursor - _source);
             _errorLog = s.str();
@@ -151,84 +153,65 @@ namespace OL {
         return nullptr;
     }
     
-    Path* Source::getPath() {
-        int token = _token;
-        if (match('^') || match('~') || match('@')) {
-            Path* path = new Path(token);
-            while (match('.')) {
-                Value* key;
-                if ((key = getKey())) {
-                    path->append(key);
-                } else {
-                    error("can not match a key");
-                    return nullptr;
-                }
+    Path* Source::getPath(int root) {
+        Path* path = new Path(root);
+        while (match('.')) {
+            Value* key = getKey();
+            if (key) {
+                path->append(key);
+            } else {
+                error("can not match a key");
+                path->release();
+                return nullptr;
             }
-            return path;
         }
-        return nullptr;
+        return path;
     }
     
     Path* Source::getFragment() {
-        if (match('{')) {
-            Path* path = getPath();
-            if (path) {
-                if (match('}')) {
-                    return path;
+        auto token = _token;
+        Path* path;
+        nextToken();
+        switch (token) {
+            case '^':
+            case '@':
+            case '~':
+                path = getPath(token);
+                if (path) {
+                    if (match('}')) {
+                        return path;
+                    } else {
+                        error("can not match }");
+                        path->release();
+                    }
                 } else {
-                    error("can not match }");
+                    error("in {} must a path");
                 }
-            } else {
-                error("in {} must a path");
-            }
+            default:
+                break;
         }
         return nullptr;
     }
     
     List* Source::getList() {
-        if (match('(')) {
-            Value* head = getValue();
-            if (head) {
-                List* list = new List(head);
-                while (match(',')) {
-                    Value* item = getValue();
-                    if (item) {
-                        list->append(item);
-                    } else {
-                        error("tail can not match a value");
-                        return nullptr;
-                    }
-                }
-                if (match(')')) {
-                    return list;
+        Value* head = getValue();
+        if (head) {
+            List* list = new List(head);
+            while (match(',')) {
+                Value* item = getValue();
+                if (item) {
+                    list->append(item);
                 } else {
-                    error("can not match )");
+                    error("tail can not match a value");
+                    break;
                 }
             }
-        }
-        return nullptr;
-    }
-    
-    Negative* Source::getNegative() {
-        if (match('!')) {
-            Value* value = getValue();
-            if (value) {
-                return new Negative(value);
+            if (match(')')) {
+                return list;
             } else {
-                error("can not match value for !");
+                error("can not match )");
             }
-        }
-        return nullptr;
-    }
-    
-    Quote* Source::getQuote() {
-        if (match('#')) {
-            Value* value = getValue();
-            if (value) {
-                return new Quote(value);
-            } else {
-                error("can not match value for #");
-            }
+            list->release();
         }
         return nullptr;
     }
@@ -236,7 +219,7 @@ namespace OL {
     Value* Source::parse(const char *source, size_t length) {
         Source s = Source(source, length);
         auto ret = s.getValue();
-        if (!ret) {
+        if (debug && !ret) {
             cout << string(source, length) << endl;
             cout << s._errorLog << endl;
         }
@@ -246,4 +229,58 @@ namespace OL {
     Value* Source::parse(const std::string &source) {
         return parse(source.c_str(), source.length());
     }
+    
+    Value* Source::getValue() {
+        auto token = _token;
+        Value* value;
+        nextToken();
+        switch (token) {
+            case STRING_TOKEN:
+                return new Quote(new class String(_tokenString.begin(), _tokenString.end()));
+            case NUMBER_TOKEN:
+                return new Quote(new class Number(_tokenNumber));
+            case '^':
+            case '@':
+            case '~':
+                return getPath(token);
+            case '{':
+                return getFragment();
+            case '!':
+                value = getValue();
+                if (value) {
+                    return new Negative(value);
+                } else {
+                    error("can not match value for !");
+                    return nullptr;
+                }
+            case '#':
+                value = getValue();
+                if (value) {
+                    return new Quote(value);
+                } else {
+                    error("can not match value for #");
+                    return nullptr;
+                }
+            case '(':
+                return getList();
+            default:
+                return nullptr;
+        }
+    }
+    
+    Value* Source::getKey() {
+        auto token = _token;
+        nextToken();
+        switch (token) {
+            case STRING_TOKEN:
+                return new Quote(new class String(_tokenString.begin(), _tokenString.end()));
+            case '{':
+                return getFragment();
+            case '(':
+                return getList();
+            default:
+                return nullptr;
+        }
+    }
+    
 }
