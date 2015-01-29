@@ -11,145 +11,119 @@
 #include "olvalue.h"
 #include "olpool.h"
 
-OLPool arrayPool;
-OLPool pairPool;
-OLPool valuePool;
 
-
-size_t OLArrayCreate() {
-    size_t i = OLPoolAlloc(&arrayPool);
-    OLArray[i].buffer = malloc(sizeof(size_t) * 16);
-    OLArray[i].cap = 16;
-    OLArray[i].count = 0;
-    return i;
-}
-
-size_t OLArrayCleanup(size_t index) {
-    for (size_t i = 0; i < OLArray[index].count; ++i) {
-        OLValueRelease(OLArray[index].buffer[i]);
-    }
-    free(OLArray[index].buffer);
-    OLPoolFree(&arrayPool, index);
-    return 0;
-}
-
-void OLArrayAppend(size_t array, size_t value) {
-    if (OLArray[array].count == OLArray[array].cap) {
-        OLArray[array].cap *= 2;
-        OLArray[array].buffer = realloc(OLArray[array].buffer, sizeof(size_t) * OLArray[array].cap);
-    }
-    OLArray[array].buffer[OLArray[array].count] = value;
-    ++OLArray[array].count;
-}
-
-size_t OLArrayAtIndex(size_t array, size_t index) {
-    if (index < OLArray[array].count) {
-        return OLArray[array].buffer[index];
-    } else {
-        return 0;
-    }
-}
+static OLPool* pairPool;
+static OLPool* valuePool;
 
 void OLInit() {
-    OLPoolInit(&arrayPool, sizeof(struct OLArray), 256, (void**)&OLArray);
-    OLPoolInit(&valuePool, sizeof(struct OLValue), 256, (void**)&OLValue);
-    OLPoolInit(&pairPool, sizeof(struct OLPair), 256, (void**)&OLPair);
 }
 
-size_t OLValueCreate() {
-    size_t ret = OLPoolAlloc(&valuePool);
-    OLValue[ret].ref = 1;
-    OLValue[ret].type = OL_NULL;
+OLValue* OLValueCreate() {
+    if (!valuePool) {
+        valuePool = OLPoolInit(sizeof(OLValue), 256);
+    }
+    OLValue* ret = OLPoolAlloc(valuePool);
+    ret->ref = 1;
+    ret->type = OL_NULL;
     return ret;
 }
 
-size_t OLValueCreateString(const char* begin, const char* end) {
-    size_t ret = OLValueCreate();
-    OLValue[ret].type = OL_STRING;
+OLValue* OLValueCreateString(const char* begin, const char* end) {
+    OLValue* ret = OLValueCreate();
+    ret->type = OL_STRING;
     size_t length = end - begin;
-    OLValue[ret].stringValue = malloc(length + 1);
-    strncpy(OLValue[ret].stringValue, begin, length);
+    ret->stringValue = malloc(length + 1);
+    strncpy(ret->stringValue, begin, length);
     return ret;
 }
 
-size_t OLValueCreateNumber(double number) {
-    size_t ret = OLValueCreate();
-    OLValue[ret].type = OL_NUMBER;
-    OLValue[ret].numberValue = number;
+OLValue* OLValueCreateNumber(double number) {
+    OLValue* ret = OLValueCreate();
+    ret->type = OL_NUMBER;
+    ret->numberValue = number;
     return ret;
 }
 
-size_t OLValueCreateBool(bool value) {
-    size_t ret = OLValueCreate();
-    OLValue[ret].type = OL_BOOL;
-    OLValue[ret].boolValue = value;
+OLValue* OLValueCreateBool(bool value) {
+    OLValue* ret = OLValueCreate();
+    ret->type = OL_BOOL;
+    ret->boolValue = value;
     return ret;
 }
 
-size_t OLValueCreateArray() {
-    size_t ret = OLValueCreate();
-    OLValue[ret].type = OL_ARRAY;
-    OLValue[ret].pointerValue = OLArrayCreate();
+OLValue* OLValueCreateArray() {
+    OLValue* ret = OLValueCreate();
+    ret->type = OL_ARRAY;
+    ret->arrayValue = OLArrayCreate();
     return ret;
 }
 
-size_t OLValueCreateObject() {
-    size_t ret = OLValueCreate();
-    OLValue[ret].type = OL_OBJECT;
-    OLValue[ret].pointerValue = OLArrayCreate();
+OLValue* OLValueCreateObject() {
+    OLValue* ret = OLValueCreate();
+    ret->type = OL_OBJECT;
+    ret->arrayValue = OLArrayCreate();
     return ret;
 }
 
-size_t OLValueCreatePair(size_t pair) {
-    size_t ret = OLValueCreate();
-    OLValue[ret].type = OL_PAIR;
-    OLValue[ret].pointerValue = pair;
+OLValue* OLValueCreatePair(OLPair* pair) {
+    OLValue* ret = OLValueCreate();
+    ret->type = OL_PAIR;
+    ret->pairValue = pair;
     return ret;
 }
 
 
-size_t OLValueRetain(size_t value) {
+OLValue* OLValueRetain(OLValue* value) {
     if (value) {
-        ++OLValue[value].ref;
+        ++value->ref;
     }
     return value;
 }
 
-size_t OLValueRelease(size_t value) {
-    if (value && --OLValue[value].ref <= 0) {
-        switch (OLValue[value].type) {
+static void arrayCleanup(OLArray* array) {
+    for (size_t i = 0; i < array->count; ++i) {
+        OLValueRelease(array->buffer[i]);
+    }
+    OLArrayCleanup(array);
+}
+
+OLValue* OLValueRelease(OLValue* value) {
+    if (value && --value->ref <= 0) {
+        switch (value->type) {
             case OL_STRING:
-                free(OLValue[value].stringValue);
+                free(value->stringValue);
                 break;
             case OL_ARRAY:
-                OLArrayCleanup(OLValue[value].pointerValue);
+                arrayCleanup(value->arrayValue);
                 break;
             case OL_OBJECT:
-                OLArrayCleanup(OLValue[value].pointerValue);
+                arrayCleanup(value->arrayValue);
                 break;
             case OL_PAIR:
-                OLPairCleanup(OLValue[value].pointerValue);
+                OLPairCleanup(value->pairValue);
                 break;
             default:
                 break;
         }
-        OLPoolFree(&valuePool, value);
+        OLPoolFree(valuePool, value);
     }
-    return 0;
+    return NULL;
 }
 
-size_t OLPairCreate() {
-    size_t pair = OLPoolAlloc(&pairPool);
+OLPair* OLPairCreate() {
+    if (!pairPool) {
+        pairPool = OLPoolInit(sizeof(OLPair), 256);
+    }
+    OLPair* pair = OLPoolAlloc(pairPool);
     return pair;
 }
-size_t OLPairCleanup(size_t pair) {
-    OLValueRelease(OLPair[pair].key);
-    OLValueRelease(OLPair[pair].value);
-    OLPoolFree(&pairPool, pair);
-    return 0;
+OLPair* OLPairCleanup(OLPair* pair) {
+    OLValueRelease(pair->key);
+    OLValueRelease(pair->value);
+    OLPoolFree(pairPool, pair);
+    return NULL;
 }
-void OLValuePrint(size_t index) {
-    struct OLValue* value = OLValue + index;
+void OLValuePrint(OLValue* value) {
     switch (value->type) {
         case OL_NULL:
             printf("null");
@@ -165,29 +139,29 @@ void OLValuePrint(size_t index) {
             printf("%s", value->stringValue);
             break;
         case OL_PAIR:
-            OLValuePrint(OLPair[value->pointerValue].key);
+            OLValuePrint(value->pairValue->key);
             printf(":");
-            OLValuePrint(OLPair[value->pointerValue].value);
+            OLValuePrint(value->pairValue->value);
             break;
         case OL_ARRAY:
             printf("[");
-            if (OLArray[value->pointerValue].count) {
-                OLValuePrint(OLArrayAtIndex(value->pointerValue, 0));
+            if (value->arrayValue->count) {
+                OLValuePrint(OLArrayAtIndex(value->arrayValue, 0));
             }
-            for (size_t i = 1; i < OLArray[value->pointerValue].count; ++i) {
+            for (size_t i = 1; i < value->arrayValue->count; ++i) {
                 printf(",");
-                OLValuePrint(OLArrayAtIndex(value->pointerValue, i));
+                OLValuePrint(OLArrayAtIndex(value->arrayValue, i));
             }
             printf("]");
             break;
         case OL_OBJECT:
             printf("{");
-            if (OLArray[value->pointerValue].count) {
-                OLValuePrint(OLArrayAtIndex(value->pointerValue, 0));
+            if (value->arrayValue->count) {
+                OLValuePrint(OLArrayAtIndex(value->arrayValue, 0));
             }
-            for (size_t i = 1; i < OLArray[value->pointerValue].count; ++i) {
+            for (size_t i = 1; i < value->arrayValue->count; ++i) {
                 printf(",");
-                OLValuePrint(OLArrayAtIndex(value->pointerValue, i));
+                OLValuePrint(OLArrayAtIndex(value->arrayValue, i));
             }
             printf("}");
             break;
@@ -199,9 +173,6 @@ void OLValuePrint(size_t index) {
     }
 }
 
-struct OLArray* OLArray;
-struct OLPair* OLPair;
-struct OLValue* OLValue;
 
 
 

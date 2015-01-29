@@ -11,19 +11,11 @@
 
 #include <stdio.h>
 
-struct OLPool {
-    void* node;
-    size_t* freeIndex;
-    size_t cap;
-    size_t count;
-    size_t nodeSize;
-    void** holder;
-};
 
 typedef struct OLPool OLPool;
 
-void OLPoolInit(OLPool* pool, size_t nodeSize, size_t capSize, void** holder);
-size_t OLPoolAlloc(OLPool* pool);
-size_t OLPoolFree(OLPool* pool, size_t index);
+OLPool* OLPoolInit(size_t nodeSize, size_t capSize);
+void* OLPoolAlloc(OLPool* pool);
+void* OLPoolFree(OLPool* pool, void* p);
 
 #endif /* defined(__ol_c__olpool__) */

@@ -11,21 +11,15 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include "olarray.h"
 
 typedef enum {
     OL_NULL, OL_STRING, OL_NUMBER, OL_BOOL, OL_PAIR, OL_ARRAY, OL_OBJECT, OL_PATH, OL_LIST, OL_NEGATIVE, OL_QUOTE
 } OLType;
 
-struct OLArray {
-    size_t* buffer;
-    size_t cap;
-    size_t count;
-};
+typedef struct OLValue OLValue;
+typedef struct OLPair OLPair;
 
-size_t OLArrayCreate();
-size_t OLArrayCleanup(size_t array);
-void OLArrayAppend(size_t array, size_t value);
-size_t OLArrayAtIndex(size_t array, size_t index);
 
 struct OLValue {
     OLType type;
@@ -34,33 +28,30 @@ struct OLValue {
         double numberValue;
         char* stringValue;
         bool boolValue;
-        size_t pointerValue;
+        OLArray* arrayValue;
+        OLPair* pairValue;
     };
 };
 struct OLPair {
-    size_t key;
-    size_t value;
+    OLValue* key;
+    OLValue* value;
 };
-size_t OLPairCreate();
-size_t OLPairCleanup(size_t pair);
+OLPair* OLPairCreate();
+OLPair* OLPairCleanup(OLPair* pair);
 
-size_t OLValueCreate();
-size_t OLValueCreateNumber(double number);
-size_t OLValueCreateString(const char* begin, const char* end);
-size_t OLValueCreateBool(bool value);
-size_t OLValueCreateArray();
-size_t OLValueCreateObject();
-size_t OLValueCreatePair(size_t pair);
+OLValue* OLValueCreate();
+OLValue* OLValueCreateNumber(double number);
+OLValue* OLValueCreateString(const char* begin, const char* end);
+OLValue* OLValueCreateBool(bool value);
+OLValue* OLValueCreateArray();
+OLValue* OLValueCreateObject();
+OLValue* OLValueCreatePair(OLPair* pair);
 
-size_t OLValueRetain(size_t value);
-size_t OLValueRelease(size_t value);
-size_t OLValueAutoRelease(size_t value);
+OLValue* OLValueRetain(OLValue* value);
+OLValue* OLValueRelease(OLValue* value);
+OLValue* OLValueAutoRelease(OLValue* value);
 
-void OLValuePrint(size_t value);
+void OLValuePrint(OLValue* value);
 void OLInit();
-
-extern struct OLArray* OLArray;
-extern struct OLPair* OLPair;
-extern struct OLValue* OLValue;
 
 #endif /* defined(__ol_c__olvalue__) */

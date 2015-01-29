@@ -28,11 +28,11 @@ void PP(FUNC func) {
 }
 
 void test_parse_json2() {
-    OLValueRelease(OLParseJSON(rootString, length));
+    OLParseJSON(rootString, length);
 }
 
 void test_parse_json() {
-    size_t value = OLParseJSON(rootString, length);
+    OLValue* value = OLParseJSON(rootString, length);
     OLValuePrint(value);
     printf("\n");
 }
@@ -40,9 +40,9 @@ void test_parse_json() {
 int main(int argc, const char * argv[]) {
     OLInit();
     length = strlen(rootString);
-//    PP(test_parse_json2);
+    PP(test_parse_json2);
     
 //    getchar();
-    test_parse_json();
+//    test_parse_json();
     return 0;
 }

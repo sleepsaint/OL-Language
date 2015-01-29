@@ -8,36 +8,51 @@
 
 #include <stdlib.h>
 #include "olpool.h"
+#include "olarray.h"
 
-void OLPoolInit(OLPool* pool, size_t nodeSize, size_t capSize, void** holder) {
-    pool->node = malloc(nodeSize * capSize);
-    pool->freeIndex = malloc(sizeof(size_t) * capSize);
+struct OLPool {
+    OLArray array;
+    void** freeNode;
+    size_t blockSize;
+    size_t cap;
+    size_t count;
+    size_t incCap;
+    size_t nodeSize;
+};
+
+OLPool* OLPoolInit(size_t nodeSize, size_t capSize) {
+    OLPool* pool = malloc(sizeof(OLPool));
+    OLArrayInit(&pool->array);
+    pool->blockSize = nodeSize * capSize;
+    void** mem = malloc(pool->blockSize);
+    OLArrayAppend(&pool->array, mem);
+    pool->freeNode = malloc(sizeof(void*) * capSize);
     pool->cap = capSize;
-    pool->count = 1;
+    pool->count = 0;
+    pool->incCap = capSize;
     pool->nodeSize = nodeSize;
     for (size_t i = 0; i < capSize; ++i) {
-        pool->freeIndex[i] = i;
+        pool->freeNode[i] = (void*)((size_t)mem + i * nodeSize);
     }
-    pool->holder = holder;
-    *holder = pool->node;
+    return pool;
 }
 
-size_t OLPoolAlloc(OLPool* pool) {
+void* OLPoolAlloc(OLPool* pool) {
     if (pool->count == pool->cap) {
-        size_t cap = pool->cap * 2;
-        pool->node = realloc(pool->node, pool->nodeSize * cap);
-        pool->freeIndex = realloc(pool->freeIndex, sizeof(size_t) * cap);
-        for (size_t i = pool->cap; i < cap; ++i) {
-            pool->freeIndex[i] = i;
+        size_t cap = pool->cap + pool->incCap;
+        void* mem = malloc(pool->blockSize);
+        OLArrayAppend(&pool->array, mem);
+        pool->freeNode = realloc(pool->freeNode, sizeof(void*) * cap);
+        for (size_t i = 0; i < pool->incCap; ++i) {
+            pool->freeNode[i + pool->cap] = (void*)((size_t)mem + i * pool->nodeSize);;
         }
-        *(pool->holder) = pool->node;
         pool->cap = cap;
     }
     
-    return pool->freeIndex[pool->count++];
+    return pool->freeNode[pool->count++];
 }
 
-size_t OLPoolFree(OLPool* pool, size_t index) {
-    pool->freeIndex[--pool->count] = index;
-    return 0;
+void* OLPoolFree(OLPool* pool, void* p) {
+    pool->freeNode[--pool->count] = p;
+    return NULL;
 }
