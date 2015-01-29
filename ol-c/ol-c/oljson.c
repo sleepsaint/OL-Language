@@ -206,64 +206,48 @@ static inline bool json_match(OLJSON* json, int expected) {
     }
 }
 
-static inline bool json_pair(OLJSON* json, OLArray* object);
-static inline bool json_element(OLJSON* json, OLArray* array);
+static inline bool json_pair(OLJSON* json, size_t object);
+static inline bool json_element(OLJSON* json, size_t array);
 
-static OLValue json_value(OLJSON* json) {
-    OLValue ret = {OL_NULL};
-    size_t length;
-    switch (json->token) {
+static size_t json_value(OLJSON* json) {
+    size_t ret = 0;
+    int token = json->token;
+    next_token(json);
+    switch (token) {
         case STRING_TOKEN:
-            ret.type = OL_STRING;
-            length = json->tokenString.cursor - json->tokenString.begin;
-            ret.stringValue = malloc(length + 1);
-            strncpy(ret.stringValue, json->tokenString.begin, length);
-            next_token(json);
-            break;
+            return OLValueCreateString(json->tokenString.begin, json->tokenString.cursor);
         case NUMBER_TOKEN:
-            ret.type = OL_NUMBER;
-            ret.numberValue = json->tokenNumber;
-            next_token(json);
-            break;
+            return OLValueCreateNumber(json->tokenNumber);
         case BOOL_TOKEN:
-            ret.type = OL_BOOL;
-            ret.boolValue = json->tokenBool;
-            next_token(json);
-            break;
+            return OLValueCreateBool(json->tokenBool);
         case NULL_TOKEN:
-            ret.type = OL_NULL;
-            next_token(json);
-            break;
+            return OLValueCreate();
         case '{':
-            next_token(json);
-            ret.type = OL_OBJECT;
-            ret.arrayValue = OLArrayCreate();
-            if (json_pair(json, ret.arrayValue)) {
+            ret = OLValueCreateObject();
+            if (json_pair(json, OLValue[ret].pointerValue)) {
                 while (json_match(json, ',')) {
-                    if (!json_pair(json, ret.arrayValue)) {
-                        OLValueCleanup(&ret);
-                        return OLNullValue;
+                    if (!json_pair(json, OLValue[ret].pointerValue)) {
+                        OLValueRelease(ret);
+                        return 0;
                     }
                 }
             }
             if (!json_match(json, '}')) {
-                OLValueCleanup(&ret);
+                OLValueRelease(ret);
             }
             break;
         case '[':
-            next_token(json);
-            ret.type = OL_ARRAY;
-            ret.arrayValue = OLArrayCreate();
-            if (json_element(json, ret.arrayValue)) {
+            ret = OLValueCreateArray();
+            if (json_element(json, OLValue[ret].pointerValue)) {
                 while (json_match(json, ',')) {
-                    if (!json_element(json, ret.arrayValue)) {
-                        OLValueCleanup(&ret);
-                        return OLNullValue;
+                    if (!json_element(json, OLValue[ret].pointerValue)) {
+                        OLValueRelease(ret);
+                        return 0;
                     }
                 }
             }
             if (!json_match(json, ']')) {
-                OLValueCleanup(&ret);
+                OLValueRelease(ret);
             }
         default:
             break;
@@ -271,24 +255,23 @@ static OLValue json_value(OLJSON* json) {
     return ret;
 }
 
-static inline bool json_pair(OLJSON* json, OLArray* object) {
-    OLPair* pair = OLPairCreate();
-    pair->key = json_value(json);
+static inline bool json_pair(OLJSON* json, size_t object) {
+    size_t pair = OLPairCreate();
+    OLPair[pair].key = json_value(json);
     if (json_match(json, ':')) {
-        pair->value = json_value(json);
-        OLValue* a = OLArrayAppend(object);
-        a->type = OL_PAIR;
-        a->pairValue = pair;
+        OLPair[pair].value = json_value(json);
+        OLArrayAppend(object, OLValueCreatePair(pair));
         return true;
     }
     OLPairCleanup(pair);
     return false;
 }
-static inline bool json_element(OLJSON* json, OLArray* array) {
-    *OLArrayAppend(array) = json_value(json);
+static inline bool json_element(OLJSON* json, size_t array) {
+    OLArrayAppend(array, json_value(json));
     return true;
 }
-OLValue OLParseJSON(const char* source, size_t length) {
+
+size_t OLParseJSON(const char* source, size_t length) {
     OLJSON json;
     init_json(&json, source, length);
     return json_value(&json);

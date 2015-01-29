@@ -117,8 +117,8 @@ int main(int argc, const char * argv[]) {
 //    test_parse();
 //    PP(test_parse2);
 //    test_parse_json();
-//    PP(test_parse_json2);
-    PP(test_lookup2);
+    PP(test_parse_json2);
+//    PP(test_lookup2);
 //    test_lookup();
     OL::Value::doAutoRelease();
 //    getchar();

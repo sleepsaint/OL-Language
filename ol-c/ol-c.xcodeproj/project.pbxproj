@@ -10,6 +10,7 @@
 		4E9B4CC91A5FB501006D6328 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E9B4CC81A5FB501006D6328 /* main.c */; };
 		4E9B4CD11A5FB5A7006D6328 /* olvalue.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E9B4CCF1A5FB5A7006D6328 /* olvalue.c */; };
 		4E9B4CD41A5FC21D006D6328 /* oljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E9B4CD21A5FC21D006D6328 /* oljson.c */; };
+		4EA819321A79AC5900E6191C /* olpool.c in Sources */ = {isa = PBXBuildFile; fileRef = 4EA819301A79AC5900E6191C /* olpool.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +32,8 @@
 		4E9B4CD01A5FB5A7006D6328 /* olvalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = olvalue.h; sourceTree = "<group>"; };
 		4E9B4CD21A5FC21D006D6328 /* oljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = oljson.c; sourceTree = "<group>"; };
 		4E9B4CD31A5FC21D006D6328 /* oljson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oljson.h; sourceTree = "<group>"; };
+		4EA819301A79AC5900E6191C /* olpool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = olpool.c; sourceTree = "<group>"; };
+		4EA819311A79AC5900E6191C /* olpool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = olpool.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +71,8 @@
 				4E9B4CD01A5FB5A7006D6328 /* olvalue.h */,
 				4E9B4CD21A5FC21D006D6328 /* oljson.c */,
 				4E9B4CD31A5FC21D006D6328 /* oljson.h */,
+				4EA819301A79AC5900E6191C /* olpool.c */,
+				4EA819311A79AC5900E6191C /* olpool.h */,
 			);
 			path = "ol-c";
 			sourceTree = "<group>";
@@ -130,6 +135,7 @@
 			files = (
 				4E9B4CD41A5FC21D006D6328 /* oljson.c in Sources */,
 				4E9B4CD11A5FB5A7006D6328 /* olvalue.c in Sources */,
+				4EA819321A79AC5900E6191C /* olpool.c in Sources */,
 				4E9B4CC91A5FB501006D6328 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

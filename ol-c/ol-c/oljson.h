@@ -11,6 +11,6 @@
 
 #include "olvalue.h"
 
-OLValue OLParseJSON(const char* source, size_t length);
+size_t OLParseJSON(const char* source, size_t length);
 
 #endif /* defined(__ol_c__oljson__) */

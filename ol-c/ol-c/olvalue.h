@@ -16,40 +16,51 @@ typedef enum {
     OL_NULL, OL_STRING, OL_NUMBER, OL_BOOL, OL_PAIR, OL_ARRAY, OL_OBJECT, OL_PATH, OL_LIST, OL_NEGATIVE, OL_QUOTE
 } OLType;
 
-typedef struct OLArray OLArray;
-typedef struct OLValue OLValue;
-typedef struct OLPair OLPair;
-
 struct OLArray {
-    OLValue* buffer;
+    size_t* buffer;
     size_t cap;
     size_t count;
 };
 
-OLArray* OLArrayCreate();
-OLArray* OLArrayCleanup(OLArray* array);
-OLValue* OLArrayAppend(OLArray* array);
-OLValue OLArrayAtIndex(OLArray* array, size_t index);
+size_t OLArrayCreate();
+size_t OLArrayCleanup(size_t array);
+void OLArrayAppend(size_t array, size_t value);
+size_t OLArrayAtIndex(size_t array, size_t index);
 
 struct OLValue {
     OLType type;
+    int ref;
     union {
         double numberValue;
         char* stringValue;
         bool boolValue;
-        OLArray* arrayValue;
-        OLPair* pairValue;
+        size_t pointerValue;
     };
 };
-OLValue* OLValueCleanup(OLValue* value);
-void OLValuePrint(OLValue value);
-
 struct OLPair {
-    OLValue key;
-    OLValue value;
+    size_t key;
+    size_t value;
 };
-OLPair* OLPairCreate();
-OLPair* OLPairCleanup(OLPair* pair);
+size_t OLPairCreate();
+size_t OLPairCleanup(size_t pair);
 
-extern OLValue OLNullValue;
+size_t OLValueCreate();
+size_t OLValueCreateNumber(double number);
+size_t OLValueCreateString(const char* begin, const char* end);
+size_t OLValueCreateBool(bool value);
+size_t OLValueCreateArray();
+size_t OLValueCreateObject();
+size_t OLValueCreatePair(size_t pair);
+
+size_t OLValueRetain(size_t value);
+size_t OLValueRelease(size_t value);
+size_t OLValueAutoRelease(size_t value);
+
+void OLValuePrint(size_t value);
+void OLInit();
+
+extern struct OLArray* OLArray;
+extern struct OLPair* OLPair;
+extern struct OLValue* OLValue;
+
 #endif /* defined(__ol_c__olvalue__) */
