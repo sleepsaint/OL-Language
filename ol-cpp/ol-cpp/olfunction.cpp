@@ -88,7 +88,10 @@ static map<string, FUNC> table {
         return new Bool(params.size() > 0);
     }
     },
-    
+    {"if",  [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
+        return *params[0] ? params[1] : params[2];
+    }
+    },
     {"filter", [](const std::vector<Value*>& params, Value* root, Value* temp, Value* now)->Value* {
         Value* container = autoLookup(params[0], root, temp, now);
         Value* func = autoLookup(params[1], root, temp, now);

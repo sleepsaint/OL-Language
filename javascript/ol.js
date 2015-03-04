@@ -380,6 +380,9 @@ OL.fun["-"] = function(params, root, temp, now) {
 OL.fun["/"] = function(params, root, temp, now) {
 	return params[0] / params[1];
 }
+OL.fun["if"] = function(params, root, temp, now) {
+	return params[0] ? params[1] : params[2];
+}
 
 OL.fun.not = function(params, root, temp, now) {
 	return !params[0];

@@ -66,7 +66,8 @@ vector<string> test = {
     "(sort, ^.wear, #!@.price)",
     "(random)",
     "(random, $5)",
-    "(random, $-5, $-3)"
+    "(random, $-5, $-3)",
+    "(if, (>, $3, $4), 3>4, 3<=4)"
 };
 
 auto root_json = OL::JSON::parse(root.c_str(), root.length());
@@ -117,9 +118,9 @@ int main(int argc, const char * argv[]) {
 //    test_parse();
 //    PP(test_parse2);
 //    test_parse_json();
-    PP(test_parse_json2);
+//    PP(test_parse_json2);
 //    PP(test_lookup2);
-//    test_lookup();
+    test_lookup();
     OL::Value::doAutoRelease();
 //    getchar();
     return 0;

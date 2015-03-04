@@ -9,7 +9,6 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
-#include <set>
 #include "olvalue.h"
 #include "olsource.h"
 #include "olfunction.h"
@@ -18,15 +17,19 @@ using namespace std;
 
 namespace OL {
     
-    static set<Value*> autoReleasePool;
+    static vector<Value*> autoReleasePool;
     
     Value* Value::autoRelease() {
-        autoReleasePool.insert(this);
+        if (!_inAutoReleasePool) {
+            _inAutoReleasePool = true;
+            autoReleasePool.push_back(this);
+        }
         return this;
     }
     
     void Value::doAutoRelease() {
         for (auto& i : autoReleasePool) {
+            i->_inAutoReleasePool = false;
             i->release();
         }
         autoReleasePool.clear();

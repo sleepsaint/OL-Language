@@ -75,6 +75,9 @@ static NSDictionary* FunctionTable;
                               }
                               return [NSNumber numberWithBool:!NO];
                           },
+                          @"if":^(NSArray* params, id root, id temp, id now) {
+                              return [params[0] boolValue] ? params[1] : params[2];
+                          },
                           @"filter":^(NSArray* params, id root, id temp, id now) {
                               return [autoLookup(root, temp, now, params[0]) filter:autoLookup(root, temp, now, params[1]) root:root temp:temp];
                           },

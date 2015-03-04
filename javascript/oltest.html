@@ -70,15 +70,16 @@
 		"(sort, ^.wear, #!@.price)",
 		"(random)",
 		"(random, $5)",
-		"(random, $-5, $-3)"
+		"(random, $-5, $-3)",
+		"(if, (>, $3, $4), 3>4, 3<=4)"
 	];
 	function test_lookup() {
 
 		for (var i in test) {
 			var source = test[i];
 			var value = OL.parse(source).lookup(root, temp, now);
-			// console.log(source);
-			// console.log(value);
+			console.log(source);
+			console.log(value);
 		}
 	}
 	
@@ -92,8 +93,8 @@
 	}
 	function test2() {
 		// test_parse();
-		// test_lookup();
-		 PP(test_lookup);
+		test_lookup();
+		 // PP(test_lookup);
 	}
 	
 	

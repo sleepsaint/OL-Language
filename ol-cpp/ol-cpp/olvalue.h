@@ -17,7 +17,7 @@ namespace OL {
     
     class Value {
     public:
-        Value() : _ref(1) {};
+        Value() : _ref(1), _inAutoReleasePool(false){}
         virtual ~Value() {}
         virtual std::string description() { return "null"; }
         virtual Value* lookup(Value* root, Value* temp, Value* now) { return nullptr; }
@@ -36,6 +36,7 @@ namespace OL {
         static void doAutoRelease();
     private:
         int _ref;
+        bool _inAutoReleasePool;
     };
     
     class String : public Value {
