@@ -12,9 +12,6 @@
 
 @implementation NSString (OLValue)
 
-- (id) getValueByKey:(id)key {
-    return nil;
-}
 - (NSComparisonResult) compare2:(id)other {
     if ([other isKindOfClass:NSString.class]) {
         return [self compare:other];
@@ -28,9 +25,6 @@
 
 @implementation NSNumber (OLValue)
 
-- (id) getValueByKey:(id)key {
-    return nil;
-}
 - (NSComparisonResult) compare2:(id)other {
     if ([other isKindOfClass:NSNumber.class]) {
         return [self compare:other];
@@ -44,9 +38,15 @@
 
 @implementation NSArray (OLValue)
 
-- (id) getValueByKey:(id)key {
-    return [self objectAtIndex:[key integerValue]];
+- (id) valueForKey:(NSString *)key {
+    return [self objectAtIndex:key.integerValue];
 }
+
+- (void) setValue:(id)value forKey:(NSString *)key {
+    NSMutableArray* array = (NSMutableArray*)self;
+    [array replaceObjectAtIndex:key.integerValue withObject:value];
+}
+
 - (id) filter:(id)function root:(id)root temp:(id)temp {
     NSMutableArray* ret = [NSMutableArray arrayWithCapacity:self.count];
     for (id now in self) {
@@ -71,9 +71,6 @@
 
 @implementation NSDictionary (OLValue)
 
-- (id) getValueByKey:(id)key {
-    return [self objectForKey:key];
-}
 - (id) filter:(id)function root:(id)root temp:(id)temp {
     NSMutableDictionary* ret = [NSMutableDictionary dictionaryWithCapacity:self.count];
     for (id key in self) {
@@ -99,9 +96,6 @@
 
 @implementation NSNull (OLValue)
 
-- (id) getValueByKey:(id)key {
-    return nil;
-}
 - (NSString*) stringValue {
     return @"null";
 }

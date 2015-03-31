@@ -40,7 +40,7 @@ void test_parse_json() {
 int main(int argc, const char * argv[]) {
     OLInit();
     length = strlen(rootString);
-    PP(test_parse_json2);
+//    PP(test_parse_json2);
     
 //    getchar();
 //    test_parse_json();

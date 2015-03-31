@@ -11,6 +11,7 @@
 @interface OLSourceValue : NSObject
 - (id) lookup:(id)root temp:(id)temp now:(id)now;
 - (NSComparisonResult) compare3:(id)root temp:(id)temp a:(id)a b:(id)b;
+- (void)change:(id)root temp:(id)temp now:(id)now toValue:(id)toValue;
 @end
 
 @interface OLString : OLSourceValue {

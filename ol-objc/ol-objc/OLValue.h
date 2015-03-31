@@ -9,24 +9,22 @@
 #import <Foundation/Foundation.h>
 
 @interface NSString (OLValue)
-- (id) getValueByKey:(id)key;
 - (NSComparisonResult) compare2:(id)other;
 @end
 
 @interface NSNumber (OLValue)
-- (id) getValueByKey:(id)key;
 - (NSComparisonResult) compare2:(id)other;
 @end
 
 @interface NSArray (OLValue)
-- (id) getValueByKey:(id)key;
+- (id) valueForKey:(NSString *)key;
+- (void) setValue:(id)value forKey:(NSString *)key;
 - (id) filter:(id)function root:(id)root temp:(id)temp;
 - (id) some:(id)function root:(id)root temp:(id)temp;
 - (NSArray*) arrayValue;
 @end
 
 @interface NSDictionary (OLValue)
-- (id) getValueByKey:(id)key;
 - (id) filter:(id)function root:(id)root temp:(id)temp;
 - (id) some:(id)function root:(id)root temp:(id)temp;
 - (NSArray*) arrayValue;
@@ -34,5 +32,4 @@
 
 @interface NSNull (OLValue)
 - (NSString*) stringValue;
-- (id) getValueByKey:(id)key;
 @end

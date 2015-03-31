@@ -40,7 +40,11 @@
 			W0005: {name: "Red Jacket", price: 220},
 			W0006: {name: "White Skirt", price: 60},
 			W0007: {name: "Red HHS", price: 10},
-		}
+		},
+		book:[
+			{name:"book001", price:200},
+			{name:"book002", price:500}
+		]
 	};
 	var temp = {
 		person: "P0001",
@@ -53,6 +57,7 @@
 	};
 	var now = {};
 	var test = [
+		"^.book.0.price",
 		"^.wear.{^.person.{~.person}.wear.hat}.price",
 		"^.wear.{~.person2.wear.hat}.price",
 		"~.personwear.price",
@@ -73,8 +78,14 @@
 		"(random, $-5, $-3)",
 		"(if, (>, $3, $4), 3>4, 3<=4)"
 	];
+	var change_test = {
+		"^.wear.{^.person.{~.person}.wear.hat}.price":90,
+		"^.wear.{~.person2.wear.hat}.price":500,
+		"~.personwear.price":300,
+		"^.book.0.price":100,
+		"^.book.1":{name:"book004",price:400},
+	};
 	function test_lookup() {
-
 		for (var i in test) {
 			var source = test[i];
 			var value = OL.parse(source).lookup(root, temp, now);
@@ -82,7 +93,15 @@
 			console.log(value);
 		}
 	}
-	
+	function test_change() {
+		for (var i in change_test) {
+			var source = OL.parse(i);
+			console.log(i);
+			console.log(source.lookup(root, temp, now));
+			source.change(root, temp, now, change_test[i]);
+			console.log(source.lookup(root, temp, now));
+		}		
+	}
 	function PP(fun) {
 		var start = new Date();
 		for (var i = 0; i < 1000; ++i) {
@@ -93,8 +112,9 @@
 	}
 	function test2() {
 		// test_parse();
-		test_lookup();
+		// test_lookup();
 		 // PP(test_lookup);
+		 test_change();
 	}
 	
 	

@@ -19,6 +19,10 @@
 - (NSComparisonResult) compare3:(id)root temp:(id)temp a:(id)a b:(id)b {
     return [[self lookup:root temp:temp now:a] compare2:[self lookup:root temp:temp now:b]];
 }
+- (void)change:(id)root temp:(id)temp now:(id)now toValue:(id)toValue {
+    
+}
+
 @end
 
 id autoLookup(id root, id temp, id now, id current) {
@@ -83,13 +87,47 @@ id autoLookup(id root, id temp, id now, id current) {
         id key = [k lookup:root temp:temp now:now];
         current = autoLookup(root, temp, now, current);
         if (key && current) {
-            current = [current getValueByKey:key];
+            current = [current valueForKey:key];
         } else {
             return nil;
         }
     }
     return current;
 }
+
+- (void) change:(id)root temp:(id)temp now:(id)now toValue:(id)toValue {
+    id current;
+    id previous = nil;
+    id key;
+    switch (_root) {
+        case '^':
+            current = root;
+            break;
+        case '~':
+            current = temp;
+            break;
+        case '@':
+            current = now;
+            break;
+        default:
+            return;
+    }
+    for (OLSourceValue* k in _keys) {
+        key = [k lookup:root temp:temp now:now];
+        current = autoLookup(root, temp, now, current);
+        if (key && current) {
+            previous = current;
+            current = [current valueForKey:key];
+        } else {
+            return;
+        }
+    }
+    
+    if (previous) {
+        [previous setValue:toValue forKey:key];
+    }
+}
+
 - (NSArray*) sort:(NSArray*)array root:(id)root temp:(id)temp {
     return [array sortedArrayUsingComparator:^(id a, id b){
         return [self compare3:root temp:temp a:a b:b];

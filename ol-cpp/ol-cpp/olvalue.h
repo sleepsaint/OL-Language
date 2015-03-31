@@ -21,6 +21,7 @@ namespace OL {
         virtual ~Value() {}
         virtual std::string description() { return "null"; }
         virtual Value* lookup(Value* root, Value* temp, Value* now) { return nullptr; }
+        virtual void change(Value* root, Value* temp, Value* now, Value* to) {}
         virtual Value*& at(const std::string& key) { static Value* ptr; return ptr; }
         virtual Value*& operator[](const std::string& key) { static Value* ptr; return ptr; }
         virtual double toNumber() { return 0; }
@@ -43,6 +44,7 @@ namespace OL {
         std::string _value;
     public:
         String(const char* begin, const char* end) : _value(begin, end - begin) {}
+        String(const std::string& s) : _value(s) {}
         std::string description() override { return _value; }
         double toNumber() override { return std::stod(_value); }
         int compare(const Value* v) override;
@@ -76,6 +78,8 @@ namespace OL {
     class Object : public Value {
         std::map<std::string, Value*> _value;
     public:
+        Object() {}
+        Object(const std::map<std::string, Value*>& o) : _value(o) {}
         ~Object();
         Value*& at(const std::string& key) { return _value.at(key); }
         Value*& operator[](const std::string& key) { return _value[key]; }
@@ -106,6 +110,7 @@ namespace OL {
         void append(Value* key) { _keys.push_back(key); }
         std::string description() override;
         Value* lookup(Value* root, Value* temp, Value* now) override;
+        void change(Value* root, Value* temp, Value* now, Value* to) override;
         void sort(std::vector<Value*>& array, Value* root, Value* temp) override;
     };
     

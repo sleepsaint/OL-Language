@@ -142,6 +142,38 @@ namespace OL {
         }
         return current;
     }
+    void Path::change(Value* root, Value* temp, Value* now, Value* to) {
+        Value* current;
+        Value* previous = nullptr;
+        Value* key = nullptr;
+        switch (_root) {
+            case '^':
+                current = root;
+                break;
+            case '~':
+                current = temp;
+                break;
+            case '@':
+                current = now;
+                break;
+            default:
+                return;
+        }
+        for (auto& k : _keys) {
+            key = k->lookup(root, temp, now);
+            current = autoLookup(current, root, temp, now);
+            if (key && current) {
+                previous = current;
+                current = (*current)[key->description()];
+            } else {
+                return;
+            }
+        }
+        if (previous) {
+            (*previous)[key->description()]->release();
+            (*previous)[key->description()] = to->retain();
+        }
+    }
     
     Value* List::lookup(Value* root, Value* temp, Value* now) {
         Value* name = _head->lookup(root, temp, now);

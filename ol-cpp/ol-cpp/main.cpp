@@ -45,10 +45,12 @@ void test_parse2() {
     }
     
 }
-string root = "{\"person\":{\"P0001\":{\"name\":\"Tom\",\"age\":30,\"wear\":{\"hat\":\"W0001\",\"upper\":\"W0002\",\"under\":\"W0003\",\"shoes\":null}},\"P0002\":{\"name\":\"May\",\"age\":25,\"wear\":{\"hat\":\"W0004\",\"upper\":\"W0005\",\"under\":\"W0006\",\"shoes\":\"W0007\"}}},\"wear\":{\"W0001\":{\"name\":\"Red Hat\",\"price\":100},\"W0002\":{\"name\":\"White Jacket\",\"price\":200},\"W0003\":{\"name\":\"Black Shorts\",\"price\":50},\"W0004\":{\"name\":\"White Hat\",\"price\":210},\"W0005\":{\"name\":\"Red Jacket\",\"price\":220},\"W0006\":{\"name\":\"White Skirt\",\"price\":60},\"W0007\":{\"name\":\"Red HHS\",\"price\":10}}}";
+string root = "{\"person\":{\"P0001\":{\"name\":\"Tom\",\"age\":30,\"wear\":{\"hat\":\"W0001\",\"upper\":\"W0002\",\"under\":\"W0003\",\"shoes\":null}},\"P0002\":{\"name\":\"May\",\"age\":25,\"wear\":{\"hat\":\"W0004\",\"upper\":\"W0005\",\"under\":\"W0006\",\"shoes\":\"W0007\"}}},\"wear\":{\"W0001\":{\"name\":\"Red Hat\",\"price\":100},\"W0002\":{\"name\":\"White Jacket\",\"price\":200},\"W0003\":{\"name\":\"Black Shorts\",\"price\":50},\"W0004\":{\"name\":\"White Hat\",\"price\":210},\"W0005\":{\"name\":\"Red Jacket\",\"price\":220},\"W0006\":{\"name\":\"White Skirt\",\"price\":60},\"W0007\":{\"name\":\"Red HHS\",\"price\":10}},\"book\":[{\"name\":\"book001\"},{\"name\":\"book002\"}]}";
 
 string temp = "{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"#(>, @.price, $150)\",\"wearsorter1\":\"#(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}";
 vector<string> test = {
+    "^.book.0",
+    "^.book.1.name",
     "^.wear.{^.person.{~.person}.wear.hat}.price",
     "^.wear.{~.person2.wear.hat}.price",
     "~.personwear.price",
@@ -68,6 +70,13 @@ vector<string> test = {
     "(random, $5)",
     "(random, $-5, $-3)",
     "(if, (>, $3, $4), 3>4, 3<=4)"
+};
+
+map<string, OL::Value*> change_test = {
+    {"^.wear.{^.person.{~.person}.wear.hat}.price", new OL::Number(500)},
+    {"^.book.1.name", new OL::String("abcde")},
+    {"^.book.0", new OL::Object({{"name",new OL::String("abeee")}})}
+
 };
 
 auto root_json = OL::JSON::parse(root.c_str(), root.length());
@@ -94,6 +103,22 @@ void test_lookup() {
     }
     
 }
+void test_change() {
+    using namespace OL;
+    for (const auto& i : change_test) {
+        auto source = Source::parse(i.first.c_str(), i.first.length());
+        auto value = source->lookup(root_json, temp_json, root_json);
+        if (value) {
+            cout << i.first << endl;
+            cout << value->description() << endl;
+            source->change(root_json, temp_json, root_json, i.second);
+            cout << source->lookup(root_json, temp_json, root_json)->description() << endl;
+            
+        }
+    }
+    
+}
+
 void test_parse_json() {
     auto json = OL::JSON::parse(root.c_str(), root.length());
     cout << json->description() << endl;
@@ -120,7 +145,8 @@ int main(int argc, const char * argv[]) {
 //    test_parse_json();
 //    PP(test_parse_json2);
 //    PP(test_lookup2);
-    test_lookup();
+//    test_lookup();
+    test_change();
     OL::Value::doAutoRelease();
 //    getchar();
     return 0;
