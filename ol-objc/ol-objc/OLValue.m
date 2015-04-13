@@ -47,6 +47,11 @@
     [array replaceObjectAtIndex:key.integerValue withObject:value];
 }
 
+- (void)removeObjectForKey:(NSString *)key {
+    NSMutableArray* array = (NSMutableArray*)self;
+    [array removeObjectAtIndex:key.integerValue];
+}
+
 - (id) filter:(id)function root:(id)root temp:(id)temp {
     NSMutableArray* ret = [NSMutableArray arrayWithCapacity:self.count];
     for (id now in self) {

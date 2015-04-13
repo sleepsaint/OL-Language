@@ -22,8 +22,10 @@ namespace OL {
         virtual std::string description() { return "null"; }
         virtual Value* lookup(Value* root, Value* temp, Value* now) { return nullptr; }
         virtual void change(Value* root, Value* temp, Value* now, Value* to) {}
+        virtual void remove(Value* root, Value* temp, Value* now) {}
         virtual Value*& at(const std::string& key) { static Value* ptr; return ptr; }
         virtual Value*& operator[](const std::string& key) { static Value* ptr; return ptr; }
+        virtual void remove(const std::string& key) {}
         virtual double toNumber() { return 0; }
         virtual int compare(const Value* v) { return 0; }
         virtual Value* filter(Value* func, Value* root, Value* temp) { return nullptr; }
@@ -31,8 +33,8 @@ namespace OL {
         virtual void sort(std::vector<Value*>& array, Value* root, Value* temp) {}
         virtual void toArray(std::vector<Value*>&) {}
         virtual bool some(Value* func, Value* root, Value* temp) { return false; }
-        Value* retain() { if (this) ++_ref; return this; }
-        Value* release() { if (this) { --_ref; if (!_ref) delete this; } return nullptr; }
+        Value* retain() { auto a = this; if (a) ++_ref; return this; }
+        Value* release() { auto a = this; if (a) { --_ref; if (!_ref) delete this; } return nullptr; }
         Value* autoRelease();
         static void doAutoRelease();
     private:
@@ -69,6 +71,7 @@ namespace OL {
         std::string description() override;
         Value*& at(const std::string& key) { return _value.at(stoi(key)); }
         Value*& operator[](const std::string& key) { return _value[stoi(key)]; }
+        void remove(const std::string& key) override { int i = stoi(key); _value[i]->release(); _value.erase(_value.begin() + i); };
         Value* filter(Value* func, Value* root, Value* temp) override;
         operator bool() override { return _value.size() > 0; }
         void toArray(std::vector<Value*>& v) override { v = _value; }
@@ -83,6 +86,7 @@ namespace OL {
         ~Object();
         Value*& at(const std::string& key) { return _value.at(key); }
         Value*& operator[](const std::string& key) { return _value[key]; }
+        void remove(const std::string& key) override { _value[key]->release(); _value.erase(key);};
         std::string description() override;
         Value* filter(Value* func, Value* root, Value* temp) override;
         operator bool() override { return _value.size() > 0; }
@@ -111,6 +115,7 @@ namespace OL {
         std::string description() override;
         Value* lookup(Value* root, Value* temp, Value* now) override;
         void change(Value* root, Value* temp, Value* now, Value* to) override;
+        void remove(Value* root, Value* temp, Value* now) override;
         void sort(std::vector<Value*>& array, Value* root, Value* temp) override;
     };
     

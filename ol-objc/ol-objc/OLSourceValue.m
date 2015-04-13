@@ -22,7 +22,9 @@
 - (void)change:(id)root temp:(id)temp now:(id)now toValue:(id)toValue {
     
 }
-
+- (void)remove:(id)root temp:(id)temp now:(id)now {
+    
+}
 @end
 
 id autoLookup(id root, id temp, id now, id current) {
@@ -125,6 +127,38 @@ id autoLookup(id root, id temp, id now, id current) {
     
     if (previous) {
         [previous setValue:toValue forKey:key];
+    }
+}
+- (void) remove:(id)root temp:(id)temp now:(id)now {
+    id current;
+    id previous = nil;
+    id key;
+    switch (_root) {
+        case '^':
+            current = root;
+            break;
+        case '~':
+            current = temp;
+            break;
+        case '@':
+            current = now;
+            break;
+        default:
+            return;
+    }
+    for (OLSourceValue* k in _keys) {
+        key = [k lookup:root temp:temp now:now];
+        current = autoLookup(root, temp, now, current);
+        if (key && current) {
+            previous = current;
+            current = [current valueForKey:key];
+        } else {
+            return;
+        }
+    }
+    
+    if (previous) {
+        [previous removeObjectForKey:key];
     }
 }
 

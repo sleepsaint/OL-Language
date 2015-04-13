@@ -79,6 +79,10 @@ map<string, OL::Value*> change_test = {
 
 };
 
+vector<string> remove_test = {
+    "^.wear.{^.person.{~.person}.wear.hat}.price"
+};
+
 auto root_json = OL::JSON::parse(root.c_str(), root.length());
 auto temp_json = OL::JSON::parse(temp.c_str(), temp.length());
 
@@ -118,6 +122,34 @@ void test_change() {
     }
     
 }
+void test_remove() {
+    using namespace OL;
+    for (const auto& i : remove_test) {
+        auto source = Source::parse(i);
+        auto value = source->lookup(root_json, temp_json, root_json);
+        if (value) {
+            cout << i << endl;
+            cout << value->description() << endl;
+            source->remove(root_json, temp_json, root_json);
+            value = source->lookup(root_json, temp_json, root_json);
+            if (value) {
+                cout << value->description() << endl;
+            } else {
+                cout << "null" << endl;
+            }
+            
+        }
+    }
+    
+    auto source = Source::parse("^.book");
+    cout << source->lookup(root_json, temp_json, root_json)->description() << endl;
+    auto remove = Source::parse("^.book.0");
+    remove->remove(root_json, temp_json, root_json);
+    cout << source->lookup(root_json, temp_json, root_json)->description() << endl;
+
+    
+    
+}
 
 void test_parse_json() {
     auto json = OL::JSON::parse(root.c_str(), root.length());
@@ -146,7 +178,8 @@ int main(int argc, const char * argv[]) {
 //    PP(test_parse_json2);
 //    PP(test_lookup2);
 //    test_lookup();
-    test_change();
+//    test_change();
+    test_remove();
     OL::Value::doAutoRelease();
 //    getchar();
     return 0;

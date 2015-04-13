@@ -19,6 +19,7 @@
 @interface NSArray (OLValue)
 - (id) valueForKey:(NSString *)key;
 - (void) setValue:(id)value forKey:(NSString *)key;
+- (void) removeObjectForKey:(NSString*)key;
 - (id) filter:(id)function root:(id)root temp:(id)temp;
 - (id) some:(id)function root:(id)root temp:(id)temp;
 - (NSArray*) arrayValue;

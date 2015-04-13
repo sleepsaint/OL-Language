@@ -12,7 +12,7 @@
 NSArray* parse_test;
 NSArray* lookup_test;
 NSDictionary* change_test;
-
+NSArray* remove_test;
 id root_json;
 id temp_json;
 
@@ -52,6 +52,29 @@ void test_change() {
         }
     }
    
+}
+
+void test_remove() {
+    for (NSString* s in remove_test) {
+        id source = [OLSource parse:s];
+        id value = [source lookup:root_json temp:temp_json now:root_json];
+        if (value) {
+            printf("%s\n", s.UTF8String);
+            printf("%s\n", [NSString stringWithFormat:@"%@", value].UTF8String);
+            [source remove:root_json temp:temp_json now:root_json];
+            value = [source lookup:root_json temp:temp_json now:root_json];
+            printf("%s\n", [NSString stringWithFormat:@"%@", value].UTF8String);
+        }
+    }
+    id source = [OLSource parse:@"^.book"];
+    id value = [source lookup:root_json temp:temp_json now:root_json];
+    printf("%s\n", [NSString stringWithFormat:@"%@", value].UTF8String);
+    id remove = [OLSource parse:@"^.book.0"];
+    [remove remove:root_json temp:temp_json now:root_json];
+    value = [source lookup:root_json temp:temp_json now:root_json];
+    printf("%s\n", [NSString stringWithFormat:@"%@", value].UTF8String);
+
+    
 }
 
 typedef void (*FUNC)();
@@ -112,12 +135,16 @@ int main(int argc, const char * argv[]) {
                         @"^.book.0.name":@"book999",
                         @"^.book.1":@{@"name":@"abcde"},
                         };
+        remove_test = @[
+                        @"^.wear.{^.person.{~.person}.wear.hat}.price",
+                        ];
         root_json = [NSJSONSerialization JSONObjectWithData:[@"{\"person\":{\"P0001\":{\"name\":\"Tom\",\"age\":30,\"wear\":{\"hat\":\"W0001\",\"upper\":\"W0002\",\"under\":\"W0003\",\"shoes\":null}},\"P0002\":{\"name\":\"May\",\"age\":25,\"wear\":{\"hat\":\"W0004\",\"upper\":\"W0005\",\"under\":\"W0006\",\"shoes\":\"W0007\"}}},\"wear\":{\"W0001\":{\"name\":\"Red Hat\",\"price\":100},\"W0002\":{\"name\":\"White Jacket\",\"price\":200},\"W0003\":{\"name\":\"Black Shorts\",\"price\":50},\"W0004\":{\"name\":\"White Hat\",\"price\":210},\"W0005\":{\"name\":\"Red Jacket\",\"price\":220},\"W0006\":{\"name\":\"White Skirt\",\"price\":60},\"W0007\":{\"name\":\"Red HHS\",\"price\":10}},\"book\":[{\"name\":\"book001\"},{\"name\":\"book002\"}]}" dataUsingEncoding:NSUTF8StringEncoding] options: NSJSONReadingMutableContainers error: nil];
         temp_json = [NSJSONSerialization JSONObjectWithData:[@"{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"#(>, @.price, $150)\",\"wearsorter1\":\"#(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}" dataUsingEncoding:NSUTF8StringEncoding] options: NSJSONReadingMutableContainers error: nil];
 //        test_parse();
 //        PP(test_lookup2);
 //        test_lookup();
-        test_change();
+//        test_change();
+        test_remove();
     }
     return 0;
 }

@@ -85,6 +85,10 @@
 		"^.book.0.price":100,
 		"^.book.1":{name:"book004",price:400},
 	};
+	var remove_test = [
+		"^.wear.{^.person.{~.person}.wear.hat}.price",
+		"^.book.1.price"
+	];
 	function test_lookup() {
 		for (var i in test) {
 			var source = test[i];
@@ -102,6 +106,20 @@
 			console.log(source.lookup(root, temp, now));
 		}		
 	}
+	function test_remove() {
+		for (var i in remove_test) {
+			var source = OL.parse(remove_test[i]);
+			console.log(remove_test[i]);
+			console.log(source.lookup(root, temp, now));
+			source.remove(root, temp, now);
+			console.log(source.lookup(root, temp, now));
+		}
+		source = OL.parse("^.book");
+		remove = OL.parse("^.book.0");
+		console.log(source.lookup(root, temp, now));
+		remove.remove(root, temp, now);
+		console.log(source.lookup(root, temp, now));
+	}
 	function PP(fun) {
 		var start = new Date();
 		for (var i = 0; i < 1000; ++i) {
@@ -114,7 +132,8 @@
 		// test_parse();
 		// test_lookup();
 		 // PP(test_lookup);
-		 test_change();
+		// test_change();
+		 test_remove();
 	}
 	
 	

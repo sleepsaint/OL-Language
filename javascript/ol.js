@@ -3,6 +3,7 @@ OL.Source = {};
 OL.Source.debug = {};
 OL.Source.lookup = {};
 OL.Source.change = {};
+OL.Source.remove = {};
 OL.fun = {};
 
 OL.Source.debug.literal = function() {
@@ -29,6 +30,9 @@ OL.Source.lookup.literal = function() {
 	return this.value;
 }
 OL.Source.change.literal = function() {
+	
+}
+OL.Source.remove.literal = function() {
 	
 }
 OL.autoLookup = function(root, temp, now, current) {
@@ -110,7 +114,49 @@ OL.Source.change.path = function(root, temp, now, toValue) {
 			return;
 		}
 	}	
-} 
+}
+
+OL.Source.remove.path = function(root, temp, now) {
+	var current;
+	var previous = null;
+	var value = null;
+	switch(this.root) {
+	case "^":
+		current = root;
+		break;
+	case "~":
+		current = temp;
+		break;
+	case "@":
+		current = now;
+		break;
+	default:
+		return;
+	}
+	for (var i in this.keys) {
+		value = this.keys[i].lookup(root, temp, now);
+		current = OL.autoLookup(root, temp, now, current);
+		if (current instanceof Array) {
+			previous = current;
+			current = current[parseInt(value)];
+		} else if (current instanceof Object) {
+			previous = current;
+			current = current[value];
+		} else {
+			return;
+		}
+	}
+	if (previous) {
+		if (previous instanceof Array) {
+			previous.splice(value, 1);
+		} else if (previous instanceof Object) {
+			delete previous[value];
+		} else {
+			return;
+		}
+	}		
+}
+
 OL.Source.lookup.list = function(root, temp, now) {
 	var funName = OL.fun[this.head.lookup(root, temp, now)];
 	if (funName) {
@@ -120,16 +166,25 @@ OL.Source.lookup.list = function(root, temp, now) {
 OL.Source.change.list = function() {
 	
 }
+OL.Source.remove.list = function() {
+	
+}
 OL.Source.lookup.negative = function(root, temp, now) {
 	return !this.value.lookup(root, temp, now);
 }
 OL.Source.change.negative = function() {
 	
 }
+OL.Source.remove.negative = function() {
+	
+}
 OL.Source.lookup.quote = function(root, temp, now) {
 	return this.value;
 }
 OL.Source.change.quote = function() {
+	
+}
+OL.Source.remove.quote = function() {
 	
 }
 OL.Source.nextToken = function() {
@@ -258,9 +313,9 @@ OL.Source.getValue = function() {
 	this.nextToken();
 	switch(token) {
 	case "s":
-		return {type:"string", value:this.tokenString, debug:this.debug.literal, lookup:this.lookup.literal, change:this.change.literal };
+		return {type:"string", value:this.tokenString, debug:this.debug.literal, lookup:this.lookup.literal, change:this.change.literal, remove:this.remove.literal };
 	case "n":
-		return {type:"number", value:this.tokenNumber, debug:this.debug.literal, lookup:this.lookup.literal, change:this.change.literal };
+		return {type:"number", value:this.tokenNumber, debug:this.debug.literal, lookup:this.lookup.literal, change:this.change.literal, remove:this.remove.literal };
 	case "^":
 	case "@":
 	case "~":
@@ -270,7 +325,7 @@ OL.Source.getValue = function() {
 	case "!":
 		var value = this.getValue();
 		if (value) {
-			return {type:"negative", value:value, debug:this.debug.negative, lookup:this.lookup.negative, change:this.change.negative};
+			return {type:"negative", value:value, debug:this.debug.negative, lookup:this.lookup.negative, change:this.change.negative, remove:this.remove.negative};
 		} else {
 			this.error("can not match value for !");
 			return;
@@ -278,7 +333,7 @@ OL.Source.getValue = function() {
 	case "#":
 		var value = this.getValue();
 		if (value) {
-			return {type:"quote", value:value, debug:this.debug.quote, lookup:this.lookup.quote, change:this.change.quote};
+			return {type:"quote", value:value, debug:this.debug.quote, lookup:this.lookup.quote, change:this.change.quote, remove:this.remove.negative};
 		} else {
 			this.error("can not match value for #");
 			return;
@@ -301,7 +356,7 @@ OL.Source.getPath = function(root) {
 			return;
 		}
 	}
-	return {type:"path", root:root, keys:keys, debug:this.debug.path, lookup:this.lookup.path, change:this.change.path};
+	return {type:"path", root:root, keys:keys, debug:this.debug.path, lookup:this.lookup.path, change:this.change.path, remove:this.remove.path};
 }
 
 OL.Source.getKey = function() {
@@ -309,7 +364,7 @@ OL.Source.getKey = function() {
 	this.nextToken();
 	switch(token) {
 	case "s":
-		return {type:"string", value:this.tokenString, debug:this.debug.literal, lookup:this.lookup.literal, change:this.change.literal };
+		return {type:"string", value:this.tokenString, debug:this.debug.literal, lookup:this.lookup.literal, change:this.change.literal, remove:this.remove.literal };
 	case "{":
 		return this.getFragment();
 	case "(":
@@ -356,7 +411,7 @@ OL.Source.getList = function() {
 			}
 		}
 		if (this.match(")")) {		
-			return {type:"list", head:head, tail:tail, debug:this.debug.list, lookup:this.lookup.list, change:this.change.list};
+			return {type:"list", head:head, tail:tail, debug:this.debug.list, lookup:this.lookup.list, change:this.change.list, remove:this.remove.list};
 		} else {
 			this.error("can not match )");
 		}
