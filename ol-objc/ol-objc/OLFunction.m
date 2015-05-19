@@ -7,7 +7,6 @@
 //
 
 #import "OLFunction.h"
-#import "OLValue.h"
 #import "OLSourceValue.h"
 
 static NSDictionary* FunctionTable;
@@ -39,22 +38,22 @@ static NSDictionary* FunctionTable;
                               return [NSNumber numberWithDouble:[params[0] doubleValue] / [params[1] doubleValue]];
                           },
                           @">":^(NSArray* params, id root, id temp, id now) {
-                              return [NSNumber numberWithBool:[params[0] compare2:params[1]] > 0];
+                              return [NSNumber numberWithBool:compareNSObject(params[0], params[1]) > 0];
                           },
                           @">=":^(NSArray* params, id root, id temp, id now) {
-                              return [NSNumber numberWithBool:[params[0] compare2:params[1]] >= 0];
+                              return [NSNumber numberWithBool:compareNSObject(params[0], params[1]) >= 0];
                           },
                           @"<":^(NSArray* params, id root, id temp, id now) {
-                              return [NSNumber numberWithBool:[params[0] compare2:params[1]] < 0];
+                              return [NSNumber numberWithBool:compareNSObject(params[0], params[1]) < 0];
                           },
                           @"<=":^(NSArray* params, id root, id temp, id now) {
-                              return [NSNumber numberWithBool:[params[0] compare2:params[1]] <= 0];
+                              return [NSNumber numberWithBool:compareNSObject(params[0], params[1]) <= 0];
                           },
                           @"=":^(NSArray* params, id root, id temp, id now) {
-                              return [NSNumber numberWithBool:[params[0] compare2:params[1]] == 0];
+                              return [NSNumber numberWithBool:compareNSObject(params[0], params[1]) == 0];
                           },
                           @"!=":^(NSArray* params, id root, id temp, id now) {
-                              return [NSNumber numberWithBool:[params[0] compare2:params[1]] != 0];
+                              return [NSNumber numberWithBool:compareNSObject(params[0], params[1]) != 0];
                           },
                           @"not":^(NSArray* params, id root, id temp, id now) {
                               return [NSNumber numberWithBool:![params[0] boolValue]];
@@ -79,14 +78,13 @@ static NSDictionary* FunctionTable;
                               return [params[0] boolValue] ? params[1] : params[2];
                           },
                           @"filter":^(NSArray* params, id root, id temp, id now) {
-                              return [autoLookup(root, temp, now, params[0]) filter:autoLookup(root, temp, now, params[1]) root:root temp:temp];
+                              return filterNSObject(autoLookup(root, temp, now, params[0]), autoLookup(root, temp, now, params[1]), root, temp);
                           },
                           @"sort":^(NSArray* params, id root, id temp, id now) {
-                              NSArray* array = [autoLookup(root, temp, now, params[0]) arrayValue];
-                              return [autoLookup(root, temp, now, params[1]) sort:array root:root temp:temp];
+                              return sortNSObject(autoLookup(root, temp, now, params[0]), autoLookup(root, temp, now, params[1]), root, temp);
                           },
                           @"some":^(NSArray* params, id root, id temp, id now) {
-                              return [autoLookup(root, temp, now, params[0]) some:autoLookup(root, temp, now, params[1]) root:root temp:temp];
+                              return [NSNumber numberWithBool:someNSObject(autoLookup(root, temp, now, params[0]), autoLookup(root, temp, now, params[1]), root, temp)];
                           },
                           @"random":^(NSArray* params, id root, id temp, id now) {
                               double ret = (double)arc4random() / (double)UINT32_MAX;
@@ -112,3 +110,76 @@ static NSDictionary* FunctionTable;
 }
 
 @end
+
+
+NSComparisonResult compareNSObject(id a, id b) {
+    if ([a isKindOfClass:[NSString class]]) {
+        if ([b isKindOfClass:[NSString class]]) {
+            return [(NSString*)a compare:(NSString*)b];
+        } else if ([b isKindOfClass:[NSNumber class]]) {
+            return [[NSNumber numberWithDouble:[a doubleValue]] compare:(NSNumber*)b];
+        } else {
+            return NSOrderedSame;
+        }
+    } else if ([a isKindOfClass:[NSNumber class]]) {
+        if ([b isKindOfClass:[NSNumber class]]) {
+            return [(NSNumber*)a compare:(NSNumber*)b];
+        } else {
+            return [(NSNumber*)a compare:[NSNumber numberWithDouble:[b doubleValue]]];
+        }
+    } else {
+        return NSOrderedSame;
+    }
+}
+
+NSArray* filterNSObject(id obj, id func, id root, id temp) {
+    if ([obj isKindOfClass:[NSArray class]]) {
+        NSMutableArray* result = [NSMutableArray arrayWithCapacity:[obj count]];
+        for (id now in obj) {
+            if ([[func lookup:root temp:temp now:now] boolValue]) {
+                [result addObject:now];
+            }
+        }
+        return result;
+    } else if ([obj isKindOfClass:[NSDictionary class]]) {
+        NSMutableArray* result = [NSMutableArray arrayWithCapacity:[obj count]];
+        for (id key in obj) {
+            id now = [obj valueForKey:key];
+            if ([[func lookup:root temp:temp now:now] boolValue]) {
+                [result addObject:now];
+            }
+        }
+        return result;
+    } else {
+        return nil;
+    }
+}
+
+NSArray* sortNSObject(id obj, id func, id root, id temp) {
+    if ([obj isKindOfClass:[NSArray class]]) {
+        return [func sort:obj root:root temp:temp];
+    } else if ([obj isKindOfClass:[NSDictionary class]]) {
+        return [func sort:[obj allValues] root:root temp:temp];
+    } else {
+        return nil;
+    }
+}
+
+BOOL someNSObject(id obj, id func, id root, id temp) {
+    if ([obj isKindOfClass:[NSArray class]]) {
+        for (id now in obj) {
+            if ([[func lookup:root temp:temp now:now] boolValue]) {
+                return YES;
+            }
+        }
+    } else if ([obj isKindOfClass:[NSDictionary class]]) {
+        for (id key in obj) {
+            id now = [obj valueForKey:key];
+            if ([[func lookup:root temp:temp now:now] boolValue]) {
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+

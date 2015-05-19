@@ -7,7 +7,6 @@
 //
 
 #import "OLSourceValue.h"
-#import "OLValue.h"
 #import "OLSource.h"
 #import "OLFunction.h"
 
@@ -17,7 +16,9 @@
     return nil;
 }
 - (NSComparisonResult) compare3:(id)root temp:(id)temp a:(id)a b:(id)b {
-    return [[self lookup:root temp:temp now:a] compare2:[self lookup:root temp:temp now:b]];
+    id left = [self lookup:root temp:temp now:a];
+    id right = [self lookup:root temp:temp now:b];
+    return compareNSObject(left, right);
 }
 - (void)change:(id)root temp:(id)temp now:(id)now toValue:(id)toValue {
     

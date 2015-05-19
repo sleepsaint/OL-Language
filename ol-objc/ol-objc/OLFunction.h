@@ -11,3 +11,8 @@
 @interface OLFunction : NSObject
 + (id) calc:(id)name params:(NSArray*)params root:(id)root temp:(id)temp now:(id)now;
 @end
+
+NSComparisonResult compareNSObject(id a, id b);
+NSArray* filterNSObject(id obj, id func, id root, id temp);
+NSArray* sortNSObject(id obj, id func, id root, id temp);
+BOOL someNSObject(id obj, id func, id root, id temp);

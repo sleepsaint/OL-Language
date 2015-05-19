@@ -142,9 +142,9 @@ int main(int argc, const char * argv[]) {
         temp_json = [NSJSONSerialization JSONObjectWithData:[@"{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"`(>, @.price, $150)\",\"wearsorter1\":\"`(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}" dataUsingEncoding:NSUTF8StringEncoding] options: NSJSONReadingMutableContainers error: nil];
 //        test_parse();
 //        PP(test_lookup2);
-//        test_lookup();
+        test_lookup();
 //        test_change();
-        test_remove();
+//        test_remove();
     }
     return 0;
 }
