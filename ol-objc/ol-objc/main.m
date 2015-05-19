@@ -92,7 +92,7 @@ int main(int argc, const char * argv[]) {
     @autoreleasepool {
         parse_test = @[
                         @"^.wear.{^.person.{~.person}.wear.hat}.price",
-                        @"#(abd,bdf)",
+                        @"`(abd,bdf)",
                         @"(abd, adfsdf, asdfd, ",
                         @"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )",
                         @"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12)",
@@ -112,17 +112,17 @@ int main(int argc, const char * argv[]) {
                         @"^.wear.{~.person2.wear.hat}.price",
                         @"~.personwear.price",
                         @"(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
-                        @"(filter, ^.wear, #(>, @.price, $150))",
+                        @"(filter, ^.wear, `(>, @.price, $150))",
                         @"(filter, ^.wear, ~.wearfilter1)",
                         @"(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )",
-                        @"(sort, ^.wear, #(@.price))",
-                        @"(sort, ^.wear, #(!(=,@.name,Red Hat),@.price))",
+                        @"(sort, ^.wear, `(@.price))",
+                        @"(sort, ^.wear, `(!(=,@.name,Red Hat),@.price))",
                         @"(sort, ^.wear, ~.wearsorter1)",
                         @"(some, ^.wear, ~.wearfilter1)",
                         @"(sort, ~.now, ~.wearsorter1)",
-                        @"(some, ~.now, #(>,@.price,50))",
-                        @"(sort, ^.wear, #@.price)",
-                        @"(sort, ^.wear, #!@.price)",
+                        @"(some, ~.now, `(>,@.price,50))",
+                        @"(sort, ^.wear, `@.price)",
+                        @"(sort, ^.wear, `!@.price)",
                         @"(random)",
                         @"(random, $5)",
                         @"(random, $-5, $-3)",
@@ -139,7 +139,7 @@ int main(int argc, const char * argv[]) {
                         @"^.wear.{^.person.{~.person}.wear.hat}.price",
                         ];
         root_json = [NSJSONSerialization JSONObjectWithData:[@"{\"person\":{\"P0001\":{\"name\":\"Tom\",\"age\":30,\"wear\":{\"hat\":\"W0001\",\"upper\":\"W0002\",\"under\":\"W0003\",\"shoes\":null}},\"P0002\":{\"name\":\"May\",\"age\":25,\"wear\":{\"hat\":\"W0004\",\"upper\":\"W0005\",\"under\":\"W0006\",\"shoes\":\"W0007\"}}},\"wear\":{\"W0001\":{\"name\":\"Red Hat\",\"price\":100},\"W0002\":{\"name\":\"White Jacket\",\"price\":200},\"W0003\":{\"name\":\"Black Shorts\",\"price\":50},\"W0004\":{\"name\":\"White Hat\",\"price\":210},\"W0005\":{\"name\":\"Red Jacket\",\"price\":220},\"W0006\":{\"name\":\"White Skirt\",\"price\":60},\"W0007\":{\"name\":\"Red HHS\",\"price\":10}},\"book\":[{\"name\":\"book001\"},{\"name\":\"book002\"}]}" dataUsingEncoding:NSUTF8StringEncoding] options: NSJSONReadingMutableContainers error: nil];
-        temp_json = [NSJSONSerialization JSONObjectWithData:[@"{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"#(>, @.price, $150)\",\"wearsorter1\":\"#(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}" dataUsingEncoding:NSUTF8StringEncoding] options: NSJSONReadingMutableContainers error: nil];
+        temp_json = [NSJSONSerialization JSONObjectWithData:[@"{\"person\":\"P0001\",\"person2\":\"^.person.P0001\",\"wearnow\":\"upper\",\"personwear\":\"^.wear.{~.person2.wear.{~.wearnow}}\",\"wearfilter1\":\"`(>, @.price, $150)\",\"wearsorter1\":\"`(!(=,@.name,Red Hat),!@.price))\",\"now\":\"^.wear\"}" dataUsingEncoding:NSUTF8StringEncoding] options: NSJSONReadingMutableContainers error: nil];
 //        test_parse();
 //        PP(test_lookup2);
 //        test_lookup();

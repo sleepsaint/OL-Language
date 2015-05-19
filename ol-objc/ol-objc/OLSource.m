@@ -38,7 +38,7 @@
             case '(':
             case ')':
             case ',':
-            case '#':
+            case '`':
             case '.':
                 _token = c;
                 ++_cursor;
@@ -63,7 +63,7 @@
                         case '(':
                         case ')':
                         case ',':
-                        case '#':
+                        case '`':
                         case '\n':
                         case ' ':
                         case '$':
@@ -98,7 +98,7 @@
             case '(':
             case ')':
             case ',':
-            case '#':
+            case '`':
             case '.':
             case '$':
                 return;
@@ -245,12 +245,12 @@
 }
 
 - (OLQuote*) quote {
-    if ([self match:'#']) {
+    if ([self match:'`']) {
         OLSourceValue* value = self.value;
         if (value) {
             return [OLQuote value:value];
         } else {
-            [self error:@"can not match value for #"];
+            [self error:@"can not match value for `"];
         }
     }
 

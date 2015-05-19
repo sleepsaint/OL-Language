@@ -39,7 +39,7 @@ namespace OL {
                 case '(':
                 case ')':
                 case ',':
-                case '#':
+                case '`':
                 case '.':
                     _token = c;
                     ++_cursor;
@@ -64,7 +64,7 @@ namespace OL {
                             case '(':
                             case ')':
                             case ',':
-                            case '#':
+                            case '`':
                             case '\n':
                             case ' ':
                             case '$':
@@ -98,7 +98,7 @@ namespace OL {
                 case '(':
                 case ')':
                 case ',':
-                case '#':
+                case '`':
                 case '.':
                 case '$':
                     return;
@@ -253,12 +253,12 @@ namespace OL {
                     error("can not match value for !");
                     return nullptr;
                 }
-            case '#':
+            case '`':
                 value = getValue();
                 if (value) {
                     return new Quote(value);
                 } else {
-                    error("can not match value for #");
+                    error("can not match value for `");
                     return nullptr;
                 }
             case '(':
