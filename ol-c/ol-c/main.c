@@ -28,7 +28,7 @@ void PP(FUNC func) {
 }
 
 void test_parse_json2() {
-    OLParseJSON(rootString, length);
+    OLValueRelease(OLParseJSON(rootString, length));
 }
 
 void test_parse_json() {
