@@ -127,6 +127,8 @@ int main(int argc, const char * argv[]) {
                         @"(random, $5)",
                         @"(random, $-5, $-3)",
                         @"(if, (>, $3, $4), 3>4, 3<=4)",
+                        @"(default,$0,1)",
+                        @"(default,5,2)",
                         ];
         change_test = @{
                         @"^.wear.{^.person.{~.person}.wear.hat}.price":@90,

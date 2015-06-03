@@ -69,7 +69,9 @@ vector<string> test = {
     "(random)",
     "(random, $5)",
     "(random, $-5, $-3)",
-    "(if, (>, $3, $4), 3>4, 3<=4)"
+    "(if, (>, $3, $4), 3>4, 3<=4)",
+    "(default,$0,1)",
+    "(default,5,2)",
 };
 
 map<string, OL::Value*> change_test = {
@@ -177,9 +179,9 @@ int main(int argc, const char * argv[]) {
 //    test_parse_json();
 //    PP(test_parse_json2);
 //    PP(test_lookup2);
-//    test_lookup();
+    test_lookup();
 //    test_change();
-    test_remove();
+//    test_remove();
     OL::Value::doAutoRelease();
 //    getchar();
     return 0;

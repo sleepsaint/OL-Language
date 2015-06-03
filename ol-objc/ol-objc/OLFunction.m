@@ -77,6 +77,9 @@ static NSDictionary* FunctionTable;
                           @"if":^(NSArray* params, id root, id temp, id now) {
                               return [params[0] boolValue] ? params[1] : params[2];
                           },
+                          @"default":^(NSArray* params, id root, id temp, id now) {
+                              return [params[0] boolValue] ? params[0] : params[1];
+                          },
                           @"filter":^(NSArray* params, id root, id temp, id now) {
                               return filterNSObject(autoLookup(root, temp, now, params[0]), autoLookup(root, temp, now, params[1]), root, temp);
                           },

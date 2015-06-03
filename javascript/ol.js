@@ -436,31 +436,31 @@ OL.parse = function(source) {
 	}
 }
 
-OL.fun[">"] = function(params, root, temp, now) {
+OL.fun[">"] = function(params) {
 	return params[0] > params[1];
 }
 
-OL.fun[">="] = function(params, root, temp, now) {
+OL.fun[">="] = function(params) {
 	return params[0] >= params[1];
 }
 
-OL.fun["<"] = function(params, root, temp, now) {
+OL.fun["<"] = function(params) {
 	return params[0] < params[1];
 }
 
-OL.fun["<="] = function(params, root, temp, now) {
+OL.fun["<="] = function(params) {
 	return params[0] <= params[1];
 }
 
-OL.fun["="] = OL.fun["=="] = function(params, root, temp, now) {
+OL.fun["="] = OL.fun["=="] = function(params) {
 	return params[0] == params[1];
 }
 
-OL.fun["!="] = function(params, root, temp, now) {
+OL.fun["!="] = function(params) {
 	return params[0] != params[1];
 }
 
-OL.fun["+"] = function(params, root, temp, now) {
+OL.fun["+"] = function(params) {
 	var result = 0;
 	for (var i in params) {
 		result += params[i];
@@ -468,7 +468,7 @@ OL.fun["+"] = function(params, root, temp, now) {
 	return result;
 }
 
-OL.fun["*"] = function(params, root, temp, now) {
+OL.fun["*"] = function(params) {
 	var result = 1;
 	for (var i in params) {
 		result *= params[i];
@@ -476,22 +476,25 @@ OL.fun["*"] = function(params, root, temp, now) {
 	return result;
 }
 
-OL.fun["-"] = function(params, root, temp, now) {
+OL.fun["-"] = function(params) {
 	return params[0] - params[1];
 }
 
-OL.fun["/"] = function(params, root, temp, now) {
+OL.fun["/"] = function(params) {
 	return params[0] / params[1];
 }
-OL.fun["if"] = function(params, root, temp, now) {
+OL.fun["if"] = function(params) {
 	return params[0] ? params[1] : params[2];
 }
+OL.fun["default"] = function(params) {
+	return params[0] ? params[0] : params[1];
+}
 
-OL.fun.not = function(params, root, temp, now) {
+OL.fun.not = function(params) {
 	return !params[0];
 }
 
-OL.fun.and = function(params, root, temp, now) {
+OL.fun.and = function(params) {
 	for (var i in params) {
 		if (!params[i]) {
 			return false;
@@ -500,7 +503,7 @@ OL.fun.and = function(params, root, temp, now) {
 	return params.length > 0;
 }
 
-OL.fun.or = function(params, root, temp, now) {
+OL.fun.or = function(params) {
 	for (var i in params) {
 		if (params[i]) {
 			return true;
@@ -509,7 +512,7 @@ OL.fun.or = function(params, root, temp, now) {
 	return false;
 }
 
-OL.fun.random = function(params, root, temp, now) {
+OL.fun.random = function(params) {
 	switch (params.length) {
 	case 0:
 		return Math.random();
