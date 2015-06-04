@@ -143,7 +143,7 @@
 
 - (void) error:(NSString*)e {
     if (!_errorLog) {
-        _errorLog = [NSString stringWithFormat:@"%@ at %ld", e, _cursor - _source];
+        _errorLog = [NSString stringWithFormat:@"%@ at %d", e, _cursor - _source];
     }
 }
 
