@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include "olsource.h"
+#include "olvaluebase.h"
 
 using namespace std;
 
@@ -156,12 +157,12 @@ namespace OL {
     Path* Source::getPath(int root) {
         Path* path = new Path(root);
         while (match('.')) {
-            Value* key = getKey();
+            ValueBase* key = getKey();
             if (key) {
                 path->append(key);
             } else {
                 error("can not match a key");
-                path->release();
+                delete path;
                 return nullptr;
             }
         }
@@ -182,7 +183,7 @@ namespace OL {
                         return path;
                     } else {
                         error("can not match }");
-                        path->release();
+                        delete path;
                     }
                 } else {
                     error("in {} must a path");
@@ -194,11 +195,11 @@ namespace OL {
     }
     
     List* Source::getList() {
-        Value* head = getValue();
+        ValueBase* head = getValue();
         if (head) {
             List* list = new List(head);
             while (match(',')) {
-                Value* item = getValue();
+                ValueBase* item = getValue();
                 if (item) {
                     list->append(item);
                 } else {
@@ -211,28 +212,28 @@ namespace OL {
             } else {
                 error("can not match )");
             }
-            list->release();
+            delete list;
         }
         return nullptr;
     }
     
-    Value* Source::parse(const char *source, size_t length) {
+    Value Source::parse(const char *source, size_t length) {
         Source s = Source(source, length);
         auto ret = s.getValue();
         if (debug && !ret) {
             cout << string(source, length) << endl;
             cout << s._errorLog << endl;
         }
-        return ret->autoRelease();
+        return ret;
     }
     
-    Value* Source::parse(const std::string &source) {
+    Value Source::parse(const std::string &source) {
         return parse(source.c_str(), source.length());
     }
     
-    Value* Source::getValue() {
+    ValueBase* Source::getValue() {
         auto token = _token;
-        Value* value;
+        ValueBase* value;
         nextToken();
         switch (token) {
             case STRING_TOKEN:
@@ -268,7 +269,7 @@ namespace OL {
         }
     }
     
-    Value* Source::getKey() {
+    ValueBase* Source::getKey() {
         auto token = _token;
         nextToken();
         switch (token) {

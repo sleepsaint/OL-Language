@@ -14,7 +14,11 @@
 
 namespace OL {
     
-    class Value;
+    class ValueBase;
+    class Quote;
+    class Path;
+    class List;
+    
     class Source {
         const char* _source;
         const char* _end;
@@ -29,8 +33,8 @@ namespace OL {
         bool _tokenBool;
         std::string _errorLog;
     public:
-        static Value* parse(const char* source, size_t length);
-        static Value* parse(const std::string& source);
+        static Value parse(const char* source, size_t length);
+        static Value parse(const std::string& source);
         static bool debug;
     private:
         Source(const char* source, size_t length);
@@ -48,10 +52,10 @@ namespace OL {
         Quote* getNumber();
         Quote* getString();
         Path* getPath(int root);
-        Value* getKey();
+        ValueBase* getKey();
         Path* getFragment();
         List* getList();
-        Value* getValue();
+        ValueBase* getValue();
     };
 }
 

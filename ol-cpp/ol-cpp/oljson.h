@@ -11,9 +11,11 @@
 
 #include "olbuffer.h"
 #include "olvalue.h"
+#include "olvaluebase.h"
 
 namespace OL {
-
+    class Object;
+    class Array;
     class JSON {
         const char* _source;
         const char* _end;
@@ -29,17 +31,17 @@ namespace OL {
         double _tokenNumber;
         bool _tokenBool;
     public:
-        static Value* parse(const char* source, size_t length) {
-            return JSON(source, length).getValue()->autoRelease();
+        static Value parse(const char* source, size_t length) {
+            return JSON(source, length).getValue();
         }
-        static Value* parse(const std::string& source) {
-            return JSON(source.c_str(), source.length()).getValue()->autoRelease();
+        static Value parse(const std::string& source) {
+            return JSON(source.c_str(), source.length()).getValue();
         }
     private:
         JSON(const char* source, size_t length);
         void nextToken();
         void unescape();
-        Value* getValue();
+        ValueBase* getValue();
         bool match(int expected) {
             if (_token == expected) {
                 nextToken();
@@ -48,8 +50,8 @@ namespace OL {
                 return false;
             }
         }
-        Value* getObject();
-        Value* getArray();
+        Object* getObject();
+        Array* getArray();
         bool getPair(Object* object);
         bool getElement(Array* array);
     };

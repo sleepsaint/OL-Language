@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E77FBAC1BD7256100054809 /* olvaluebase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E77FBAA1BD7256100054809 /* olvaluebase.cpp */; settings = {ASSET_TAGS = (); }; };
 		4E873D851A54422600CDC7B1 /* olsource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E873D831A54422600CDC7B1 /* olsource.cpp */; };
 		4E873DD61A5AD7AB00CDC7B1 /* olfunction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4E873DD41A5AD7AB00CDC7B1 /* olfunction.cpp */; };
 		4EBA3CD01A5392BF008D7840 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA3CCF1A5392BF008D7840 /* main.cpp */; };
@@ -27,6 +28,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4E77FBAA1BD7256100054809 /* olvaluebase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = olvaluebase.cpp; sourceTree = "<group>"; };
+		4E77FBAB1BD7256100054809 /* olvaluebase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = olvaluebase.h; sourceTree = "<group>"; };
 		4E873D831A54422600CDC7B1 /* olsource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = olsource.cpp; sourceTree = "<group>"; };
 		4E873D841A54422600CDC7B1 /* olsource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = olsource.h; sourceTree = "<group>"; };
 		4E873DD41A5AD7AB00CDC7B1 /* olfunction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = olfunction.cpp; sourceTree = "<group>"; };
@@ -80,6 +83,8 @@
 				4E873DD41A5AD7AB00CDC7B1 /* olfunction.cpp */,
 				4E873DD51A5AD7AB00CDC7B1 /* olfunction.h */,
 				4EBA3CDD1A592293008D7840 /* olbuffer.h */,
+				4E77FBAA1BD7256100054809 /* olvaluebase.cpp */,
+				4E77FBAB1BD7256100054809 /* olvaluebase.h */,
 			);
 			path = "ol-cpp";
 			sourceTree = "<group>";
@@ -145,6 +150,7 @@
 				4EBA3CD81A5392F1008D7840 /* olvalue.cpp in Sources */,
 				4EBA3CD01A5392BF008D7840 /* main.cpp in Sources */,
 				4E873DD61A5AD7AB00CDC7B1 /* olfunction.cpp in Sources */,
+				4E77FBAC1BD7256100054809 /* olvaluebase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

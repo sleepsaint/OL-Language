@@ -11,6 +11,7 @@
 #include "olsource.h"
 
 using namespace std;
+using namespace OL;
 
 vector<string> test2 = {
     "^.wear.{^.person.{~.person}.wear.hat}.price",
@@ -31,10 +32,8 @@ vector<string> test2 = {
 void test_parse() {
     
     for (const auto& i : test2) {
-        auto value = OL::Source::parse(i.c_str(), i.length());
-        if (value) {
-            cout << value->description() << endl;
-        }
+        auto value = OL::Source::parse(i);
+        cout << value.description() << endl;
     }
     
 }
@@ -55,6 +54,7 @@ vector<string> test = {
     "^.wear.{~.person2.wear.hat}.price",
     "~.personwear.price",
     "(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
+    "(*, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
     "(filter, ^.wear, `(>, @.price, $150))",
     "(filter, ^.wear, ~.wearfilter1)",
     "(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )",
@@ -63,7 +63,7 @@ vector<string> test = {
     "(sort, ^.wear, ~.wearsorter1)",
     "(some, ^.wear, ~.wearfilter1)",
     "(sort, ~.now, ~.wearsorter1)",
-    "(some, ~.now, `(>,@.price,50))",
+    "(some, ^.wear, `(>,@.price,$50))",
     "(sort, ^.wear, `@.price)",
     "(sort, ^.wear, `!@.price)",
     "(random)",
@@ -74,53 +74,46 @@ vector<string> test = {
     "(default,5,2)",
 };
 
-map<string, OL::Value*> change_test = {
-    {"^.wear.{^.person.{~.person}.wear.hat}.price", new OL::Number(500)},
-    {"^.book.1.name", new OL::String("abcde")},
-    {"^.book.0", new OL::Object({{"name",new OL::String("abeee")}})}
-
+vector<pair<string, OL::Value>> change_test = {
+    {"^.wear.{^.person.{~.person}.wear.hat}.price", 500},
+    {"^.book.1.name", "abcde"},
+    {"^.book", map<string, OL::Value>({{"name", "abcd"}})}
 };
 
 vector<string> remove_test = {
     "^.wear.{^.person.{~.person}.wear.hat}.price"
 };
 
-auto root_json = OL::JSON::parse(root.c_str(), root.length());
-auto temp_json = OL::JSON::parse(temp.c_str(), temp.length());
+auto root_json = OL::JSON::parse(root);
+auto temp_json = OL::JSON::parse(temp);
 
 void test_lookup2() {
     using namespace OL;
      for (const auto& i : test) {
-        auto value = Source::parse(i.c_str(), i.length());
-        value->lookup(root_json, temp_json, root_json);
+        auto value = Source::parse(i);
+        value.lookup(root_json, temp_json, root_json);
     }
    
 }
 void test_lookup() {
     using namespace OL;
     for (const auto& i : test) {
-        auto value = Source::parse(i.c_str(), i.length());
-        auto value2 = value->lookup(root_json, temp_json, root_json);
-        if (value2) {
-            cout << i << endl;
-            cout << value2->description() << endl;
-
-        }
+        auto value = Source::parse(i);
+        auto value2 = value.lookup(root_json, temp_json, root_json);
+        cout << i << endl;
+        cout << value2.description() << endl;
     }
     
 }
 void test_change() {
     using namespace OL;
     for (const auto& i : change_test) {
-        auto source = Source::parse(i.first.c_str(), i.first.length());
-        auto value = source->lookup(root_json, temp_json, root_json);
-        if (value) {
-            cout << i.first << endl;
-            cout << value->description() << endl;
-            source->change(root_json, temp_json, root_json, i.second);
-            cout << source->lookup(root_json, temp_json, root_json)->description() << endl;
-            
-        }
+        auto source = Source::parse(i.first);
+        auto value = source.lookup(root_json, temp_json, root_json);
+        cout << i.first << " " << i.second.description() << endl;
+        cout << value.description() << endl;
+        source.change(root_json, temp_json, root_json, i.second);
+        cout << source.lookup(root_json, temp_json, root_json).description() << endl;
     }
     
 }
@@ -128,14 +121,14 @@ void test_remove() {
     using namespace OL;
     for (const auto& i : remove_test) {
         auto source = Source::parse(i);
-        auto value = source->lookup(root_json, temp_json, root_json);
+        auto value = source.lookup(root_json, temp_json, root_json);
         if (value) {
             cout << i << endl;
-            cout << value->description() << endl;
-            source->remove(root_json, temp_json, root_json);
-            value = source->lookup(root_json, temp_json, root_json);
+            cout << value.description() << endl;
+            source.remove(root_json, temp_json, root_json);
+            value = source.lookup(root_json, temp_json, root_json);
             if (value) {
-                cout << value->description() << endl;
+                cout << value.description() << endl;
             } else {
                 cout << "null" << endl;
             }
@@ -144,21 +137,19 @@ void test_remove() {
     }
     
     auto source = Source::parse("^.book");
-    cout << source->lookup(root_json, temp_json, root_json)->description() << endl;
+    cout << source.lookup(root_json, temp_json, root_json).description() << endl;
     auto remove = Source::parse("^.book.0");
-    remove->remove(root_json, temp_json, root_json);
-    cout << source->lookup(root_json, temp_json, root_json)->description() << endl;
+    remove.remove(root_json, temp_json, root_json);
+    cout << source.lookup(root_json, temp_json, root_json).description() << endl;
 
-    
-    
 }
 
 void test_parse_json() {
-    auto json = OL::JSON::parse(root.c_str(), root.length());
-    cout << json->description() << endl;
+    auto json = OL::JSON::parse(root);
+    cout << json.description() << endl;
 }
 void test_parse_json2() {
-    OL::JSON::parse(root.c_str(), root.length());
+    OL::JSON::parse(root);
 
 }
 typedef void (*FUNC)();
@@ -172,17 +163,36 @@ void PP(FUNC func) {
     cout << end - start << endl;
 }
 
+void test_json_op() {
+    root_json["book"][1] = "abde";
+//    root_json["abc"] = 5;
+//    root_json["book"] = ArrayValue({"abde","bbde"});
+//    root_json["book"] = ObjectValue({{"abde","bbde"}});
+//    root_json["book"] = "abcd";
+//    cout << root_json["book"].description() << endl;
+    cout << root_json.description() << endl;
+
+    
+    
+    for (const auto& i : root_json) {
+        for (const auto& j : i) {
+            cout << j.description() << endl;
+        }
+    }
+
+}
+
 int main(int argc, const char * argv[]) {
-  
+//    OL::Source::debug = true;
 //    test_parse();
 //    PP(test_parse2);
 //    test_parse_json();
 //    PP(test_parse_json2);
 //    PP(test_lookup2);
-    test_lookup();
+//    test_lookup();
 //    test_change();
 //    test_remove();
-    OL::Value::doAutoRelease();
+    test_json_op();
 //    getchar();
     return 0;
 }

@@ -13,7 +13,7 @@
 
 namespace OL {
     
-    Value* calc(const std::string& name, const std::vector<Value*>& params, Value* root, Value* temp, Value* now);
+    Value calc(const std::string& name, const std::vector<Value>& params, const Value& root, const Value& temp, const Value& now);
 }
 
 #endif /* defined(__ol_cpp__olfunction__) */

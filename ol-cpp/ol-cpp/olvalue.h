@@ -12,146 +12,136 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <iostream>
 
 namespace OL {
     
+    class ValueBase;
+    class ValueIter;
+    
     class Value {
     public:
-        Value() : _ref(1), _inAutoReleasePool(false){}
-        virtual ~Value() {}
-        virtual std::string description() { return "null"; }
-        virtual Value* lookup(Value* root, Value* temp, Value* now) { return nullptr; }
-        virtual void change(Value* root, Value* temp, Value* now, Value* to) {}
-        virtual void remove(Value* root, Value* temp, Value* now) {}
-        virtual Value*& at(const std::string& key) { static Value* ptr; return ptr; }
-        virtual Value*& operator[](const std::string& key) { static Value* ptr; return ptr; }
-        virtual void remove(const std::string& key) {}
-        virtual double toNumber() { return 0; }
-        virtual int compare(const Value* v) { return 0; }
-        virtual Value* filter(Value* func, Value* root, Value* temp) { return nullptr; }
-        virtual operator bool() { return false; }
-        virtual void sort(std::vector<Value*>& array, Value* root, Value* temp) {}
-        virtual void toArray(std::vector<Value*>&) {}
-        virtual bool some(Value* func, Value* root, Value* temp) { return false; }
-        Value* retain() { auto a = this; if (a) ++_ref; return this; }
-        Value* release() { auto a = this; if (a) { --_ref; if (!_ref) delete this; } return nullptr; }
-        Value* autoRelease();
-        static void doAutoRelease();
-    private:
-        int _ref;
-        bool _inAutoReleasePool;
-    };
-    
-    class String : public Value {
-        std::string _value;
-    public:
-        String(const char* begin, const char* end) : _value(begin, end - begin) {}
-        String(const std::string& s) : _value(s) {}
-        std::string description() override { return _value; }
-        double toNumber() override { return std::stod(_value); }
-        int compare(const Value* v) override;
-        operator bool() override { return _value.length() > 0; }
-    };
-    
-    class Number : public Value {
-        double _value;
-    public:
-        Number(double number) : _value(number) {}
-        std::string description() override;
-        double toNumber() { return _value; }
-        int compare(const Value* v) override;
-        operator bool() override { return _value != 0; }
-    };
-    
-    class Array  : public Value {
-    public:
-        std::vector<Value*> _value;
-        ~Array();
-        void append(Value* item) { _value.push_back(item); }
-        std::string description() override;
-        Value*& at(const std::string& key) { return _value.at(stoi(key)); }
-        Value*& operator[](const std::string& key) { return _value[stoi(key)]; }
-        void remove(const std::string& key) override { int i = stoi(key); _value[i]->release(); _value.erase(_value.begin() + i); };
-        Value* filter(Value* func, Value* root, Value* temp) override;
-        operator bool() override { return _value.size() > 0; }
-        void toArray(std::vector<Value*>& v) override { v = _value; }
-        bool some(Value* func, Value* root, Value* temp) override;
-    };
-    
-    class Object : public Value {
-        std::map<std::string, Value*> _value;
-    public:
-        Object() {}
-        Object(const std::map<std::string, Value*>& o) : _value(o) {}
-        ~Object();
-        Value*& at(const std::string& key) { return _value.at(key); }
-        Value*& operator[](const std::string& key) { return _value[key]; }
-        void remove(const std::string& key) override { _value[key]->release(); _value.erase(key);};
-        std::string description() override;
-        Value* filter(Value* func, Value* root, Value* temp) override;
-        operator bool() override { return _value.size() > 0; }
-        void toArray(std::vector<Value*>&) override;
-        bool some(Value* func, Value* root, Value* temp) override;
-    };
-    
-    class Bool : public Value {
-        bool _value;
-    public:
-        Bool(bool b) : _value(b) {}
-        std::string description() override;
-        double toNumber() override { return _value ? 1 : 0; }
-        int compare(const Value* v) override;
-        operator bool() override { return _value; }
+        Value() : _ptr(nullptr) {}
+        Value(ValueBase* v) : _ptr(v) {}
+        Value(bool b);
+        Value(double n);
+        Value(int n);
+        Value(const char* str);
+        Value(const std::string& str);
+        Value(const Value& v);
+        Value(const std::map<std::string, Value>& v);
+        Value(const std::vector<Value>& v);
+        ~Value();
+        std::string description() const;
+        Value lookup (const Value& root, const Value& temp, const Value& now) const;
+        void change(const Value& root, const Value& temp, const Value& now, const Value& to) const;
+        void remove(const Value& root, const Value& temp, const Value& now) const;
+        void append(const Value& v);
+        void remove(const std::string& key) const;
+        std::vector<Value> toArray() const;
+        int compare(const Value& v) const;
+        Value filter(const Value& func, const Value& root, const Value& temp) const;
+        void sort(std::vector<Value>& array, const Value& root, const Value& temp) const;
+        bool some(const Value& func, const Value& root, const Value& temp) const;
+        bool isNumber() const;
+        bool isString() const;
+        bool isNegative() const;
+        bool isArray() const;
+        bool isObject() const;
+        bool isPair() const;
+        bool isNull() const { return !_ptr; }
+        
+        double toNumber() const;
+        std::string toString() const { return description(); };
+        
+        Value& operator [](const std::string& key) const;
+        Value& operator [](const char* key) const;
+        Value& operator [](int key) const;
 
+        Value& operator =(const Value& v);
+        Value& operator =(ValueBase* v);
+        
+        bool operator >(const Value& v) const;
+        bool operator <(const Value& v) const;
+        bool operator ==(const Value& v) const;
+ 
+        operator bool() const;
+        
+        
+        friend double operator +(const Value& a, const Value& b);
+        friend double operator +(double a, const Value& b);
+        friend double operator +(const Value& a, double b);
+        friend double operator *(const Value& a, const Value& b);
+        friend double operator *(double a, const Value& b);
+        friend double operator *(const Value& a, double b);
+
+        friend double operator -(const Value& a, const Value& b);
+        friend double operator /(const Value& a, const Value& b);
+
+        ValueBase* ptr() const { return _ptr; }
+        
+        ValueIter begin() const;
+        ValueIter end() const;
+        
+        std::string key() const;
+        Value& value() const;
+
+    private:
+        ValueBase* _ptr;
     };
-    
-    class Path : public Value {
-        int _root;
-        std::vector<Value*> _keys;
+    class ValueIter {
     public:
-        Path(char root) : _root(root) {}
-        ~Path();
-        void append(Value* key) { _keys.push_back(key); }
-        std::string description() override;
-        Value* lookup(Value* root, Value* temp, Value* now) override;
-        void change(Value* root, Value* temp, Value* now, Value* to) override;
-        void remove(Value* root, Value* temp, Value* now) override;
-        void sort(std::vector<Value*>& array, Value* root, Value* temp) override;
-    };
-    
-    class List : public Value {
-        Value* _head;
-        std::vector<Value*> _tail;
-    public:
-        List(Value* head) : _head(head) {}
-        ~List();
-        void append(Value* item) { _tail.push_back(item); }
-        std::string description() override;
-        Value* lookup(Value* root, Value* temp, Value* now) override;
-        void sort(std::vector<Value*>& array, Value* root, Value* temp) override;
-    };
-    
-    class Negative : public Value {
-    public:
-        Value* _value;
-        Negative(Value* value) : _value(value) {}
-        ~Negative() {_value->release();}
-        std::string description() override { return "!" + _value->description(); }
-        Value* lookup(Value* root, Value* temp, Value* now) override;
-        void sort(std::vector<Value*>& array, Value* root, Value* temp) override;
-    };
-    
-    class Quote : public Value {
-        Value* _value;
-    public:
-        Quote(Value* value) : _value(value) {}
-        ~Quote() {_value->release();}
-        std::string description() override { return "#" + _value->description(); }
-        Value* lookup(Value* root, Value* temp, Value* now) override {
-            return _value;
+        enum IterType { UNSUPPORT, ARRAY, OBJECT };
+        ValueIter() : _type(UNSUPPORT) {}
+        ValueIter(const std::vector<Value>::iterator& iter) : _array(iter), _type(ARRAY) {}
+        ValueIter(const std::map<std::string, Value>::iterator& iter) : _object(iter), _type(OBJECT) {}
+        bool operator!= (const ValueIter& other) const
+        {
+            switch (_type) {
+                case ARRAY:
+                    return _array != other._array;
+                case OBJECT:
+                    return _object != other._object;
+                default:
+                    return false;
+            }
         }
+        
+        Value& operator* () const {
+            static Value nullValue;
+            switch (_type) {
+                case ARRAY:
+                    return *_array;
+                case OBJECT:
+                    return _object->second;
+                default:
+                    return nullValue;
+            }
+        }
+        
+        const ValueIter& operator++ ()
+        {
+            switch (_type) {
+                case ARRAY:
+                    ++_array;
+                    break;
+                case OBJECT:
+                    ++_object;
+                    break;
+                default:
+                    break;
+            }
+            return *this;
+        }
+    private:
+        std::vector<Value>::iterator _array;
+        std::map<std::string, Value>::iterator _object;
+        IterType _type;
     };
     
-    Value* autoLookup(Value* call, Value* root, Value* temp, Value* now);
+
+    typedef std::vector<OL::Value> ArrayValue;
+    typedef std::map<std::string, OL::Value> ObjectValue;
+    
 }
 #endif /* defined(__ol_cpp__olvalue__) */

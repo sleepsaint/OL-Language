@@ -10,6 +10,7 @@
 #include <sstream>
 #include <algorithm>
 #include "olvalue.h"
+#include "olvaluebase.h"
 #include "olsource.h"
 #include "olfunction.h"
 
@@ -17,360 +18,239 @@ using namespace std;
 
 namespace OL {
     
-    static vector<Value*> autoReleasePool;
-    
-    Value* Value::autoRelease() {
-        if (!_inAutoReleasePool) {
-            _inAutoReleasePool = true;
-            autoReleasePool.push_back(this);
-        }
-        return this;
+    ValueIter Value::begin() const {
+        return _ptr ? _ptr->begin() : ValueIter();
     }
     
-    void Value::doAutoRelease() {
-        for (auto& i : autoReleasePool) {
-            i->_inAutoReleasePool = false;
-            i->release();
-        }
-        autoReleasePool.clear();
+    ValueIter Value::end() const {
+        return _ptr ? _ptr->end() : ValueIter();
+    }
+        
+    Value::Value(bool b) {
+        _ptr = new Bool(b);
     }
     
-    string Number::description() {
-        if ((int)_value == _value) {
-            return to_string((int)_value);
+    Value::Value(int n) {
+        _ptr = new Number(n);
+    }
+    
+    Value::Value(double n) {
+        _ptr = new Number(n);
+    }
+    
+    Value::Value(const char* str) {
+        _ptr = new String(str);
+    }
+    
+    Value::Value(const std::string& str) {
+        _ptr = new String(str);
+    }
+    
+    Value::~Value() {
+        if (_ptr) {
+            _ptr->release();
+        }
+    }
+    
+    Value::Value(const Value& v) {
+        _ptr = v._ptr->retain();
+    }
+    
+    Value::Value(const map<string, Value>& v) {
+        _ptr = new Object(v);
+    }
+
+    Value::Value(const vector<Value>& v) {
+        _ptr = new Array(v);
+    }
+
+    Value& Value::operator=(const Value &v) {
+        if (_ptr != v._ptr) {
+            if (_ptr) {
+                _ptr->release();
+            }
+            _ptr = v._ptr;
+            if (_ptr) {
+                _ptr->retain();
+            }
+        }
+        return *this;
+    }
+    
+    Value& Value::operator=(ValueBase* v) {
+        if (_ptr != v) {
+            if (_ptr) {
+                _ptr->release();
+            }
+            _ptr = v;
+        }
+        return *this;
+    }
+   
+    bool Value::isNegative() const {
+        return _ptr && typeid(*_ptr) == typeid(Negative);
+    }
+    
+    bool Value::isArray() const {
+        return _ptr && typeid(*_ptr) == typeid(Array);
+    }
+    
+    bool Value::isObject() const {
+        return _ptr && typeid(*_ptr) == typeid(Object);
+    }
+    
+    bool Value::isNumber() const {
+        return _ptr && typeid(*_ptr) == typeid(Number);
+    }
+    
+    bool Value::isString() const {
+        return _ptr && typeid(*_ptr) == typeid(String);
+    }
+    
+    bool Value::isPair() const {
+        return _ptr && typeid(*_ptr) == typeid(Pair);
+    }
+    
+    std::string Value::description() const {
+        return _ptr ? _ptr->description() : "null";
+    }
+    
+    Value Value::lookup(const Value &root, const Value &temp, const Value &now) const {
+        return _ptr ? _ptr->lookup(root, temp, now) : Value();
+    }
+    
+    void Value::change(const Value &root, const Value &temp, const Value &now, const Value &to) const {
+        if (_ptr) {
+            _ptr->change(root, temp, now, to);
+        }
+    }
+    
+    void Value::remove(const Value &root, const Value &temp, const Value &now) const {
+        if (_ptr) {
+            _ptr->remove(root, temp, now);
+        }
+    }
+        
+    Value& Value::operator[](const std::string &key) const {
+        static Value nullValue;
+        return _ptr ? (*_ptr)[key] : nullValue;
+    }
+
+    Value& Value::operator[](const char* key) const {
+        static Value nullValue;
+        return _ptr ? (*_ptr)[string(key ? key : "")] : nullValue;
+    }
+
+    Value& Value::operator[](int key) const {
+        static Value nullValue;
+        return _ptr ? (*_ptr)[to_string(key)] : nullValue;
+    }
+
+    
+    void Value::append(const Value &v) {
+        if (_ptr && isArray()) {
+            ((Array*)_ptr)->append(v);
+        }
+    }
+    
+    void Value::remove(const std::string& key) const {
+        if (_ptr) {
+            _ptr->remove(key);
+        }
+    }
+    
+    double Value::toNumber() const {
+        return _ptr ? _ptr->toNumber() : 0;
+    }
+    
+    std::vector<Value> Value::toArray() const {
+        return _ptr ? _ptr->toArray() : std::vector<Value>();
+    }
+    
+    int Value::compare(const Value &v) const {
+        if (_ptr) {
+            if (v.isNull()) {
+                return 1;
+            } else {
+                return _ptr->compare(v);
+            }
         } else {
-            return to_string(_value);
-        }
-    }
-    
-    
-    string Array::description() {
-        ostringstream s;
-        s << "[";
-        auto i = _value.begin();
-        if (i != _value.end()) {
-            s << (*i)->description();
-            ++i;
-            while (i != _value.end()) {
-                s << "," << (*i)->description();
-                ++i;
-            }
-        }
-        s << "]";
-        return s.str();
-    }
-    
-    string Object::description() {
-        ostringstream s;
-        s << "{";
-        auto i = _value.begin();
-        if (i != _value.end()) {
-            s << i->first << ":" << i->second->description();
-            ++i;
-            while (i != _value.end()) {
-                s << "," << i->first << ":" << i->second->description();
-                ++i;
-            }
-        }
-        s << "}";
-        return s.str();
-    }
-    
-    string Path::description() {
-        ostringstream s;
-        s << _root;
-        for (auto& i : _keys) {
-            s << "[" << i->description() << "]";
-        }
-        return s.str();
-    }
-    
-    string List::description() {
-        ostringstream s;
-        s << _head->description() << "(";
-        auto i = _tail.begin();
-        if (i != _tail.end()) {
-            s << (*i)->description();
-            ++i;
-            while (i != _tail.end()) {
-                s << "," << (*i)->description();
-                ++i;
-            }
-        }
-        s << ")";
-        return s.str();
-    }
-    
-    string Bool::description() {
-        return _value ? "true" : "false";
-    }
-    
-    Value* autoLookup(Value* call, Value* root, Value* temp, Value* now) {
-        Value* ret = call;
-        while (typeid(*ret) == typeid(String)) {
-            Value* source = Source::parse(ret->description());
-            if (source) {
-                ret = source->lookup(root, temp, now);
-            }
-        }
-        return ret;
-    }
-    
-    Value* Path::lookup(Value* root, Value* temp, Value* now) {
-        Value* current;
-        switch (_root) {
-            case '^':
-                current = root;
-                break;
-            case '~':
-                current = temp;
-                break;
-            case '@':
-                current = now;
-                break;
-            default:
-                return nullptr;
-        }
-        for (auto& k : _keys) {
-            auto key = k->lookup(root, temp, now);
-            current = autoLookup(current, root, temp, now);
-            if (key && current) {
-                current = (*current)[key->description()];
+            if (v.isNull()) {
+                return 0;
             } else {
-                return nullptr;
+                return -1;
             }
         }
-        return current;
-    }
-    void Path::change(Value* root, Value* temp, Value* now, Value* to) {
-        Value* current;
-        Value* previous = nullptr;
-        Value* key = nullptr;
-        switch (_root) {
-            case '^':
-                current = root;
-                break;
-            case '~':
-                current = temp;
-                break;
-            case '@':
-                current = now;
-                break;
-            default:
-                return;
-        }
-        for (auto& k : _keys) {
-            key = k->lookup(root, temp, now);
-            current = autoLookup(current, root, temp, now);
-            if (key && current) {
-                previous = current;
-                current = (*current)[key->description()];
-            } else {
-                return;
-            }
-        }
-        if (previous) {
-            (*previous)[key->description()]->release();
-            (*previous)[key->description()] = to->retain();
-        }
-    }
-    void Path::remove(Value* root, Value* temp, Value* now) {
-        Value* current;
-        Value* previous = nullptr;
-        Value* key = nullptr;
-        switch (_root) {
-            case '^':
-                current = root;
-                break;
-            case '~':
-                current = temp;
-                break;
-            case '@':
-                current = now;
-                break;
-            default:
-                return;
-        }
-        for (auto& k : _keys) {
-            key = k->lookup(root, temp, now);
-            current = autoLookup(current, root, temp, now);
-            if (key && current) {
-                previous = current;
-                current = (*current)[key->description()];
-            } else {
-                return;
-            }
-        }
-        if (previous) {
-            previous->remove(key->description());
-        }
     }
     
-    Value* List::lookup(Value* root, Value* temp, Value* now) {
-        Value* name = _head->lookup(root, temp, now);
-        if (name) {
-            vector<Value*> params;
-            params.resize(_tail.size());
-            transform(_tail.begin(), _tail.end(), params.begin(), [=](Value* v)->Value*{return v->lookup(root, temp, now);});
-            return calc(name->description(), params, root, temp, now);
-        }
-        return nullptr;
+    std::string Value::key() const {
+        return isPair() ? ((Pair*)_ptr)->_value.first : "";
     }
-    
-    Value* Negative::lookup(Value* root, Value* temp, Value* now) {
-        Value* p = _value->lookup(root, temp, now);
-        return (new Bool(!(p && *p)))->autoRelease();
-    }
-    template<typename T> int compare(const T& a, const T& b) {
-        if (a > b) {
-            return 1;
-        } else if (a < b) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
-    int String::compare(const Value* v) {
-        const String* s = dynamic_cast<const String*>(v);
-        if (s) {
-            return ::OL::compare(_value, s->_value);
-        }
-        const Number* n = dynamic_cast<const Number*>(v);
-        if (n) {
-            return ::OL::compare(_value, s->_value);
-        }
-        return 0;
-    }
-    
-    int Number::compare(const Value* v) {
-        const Number* s = dynamic_cast<const Number*>(v);
-        if (s) {
-            return ::OL::compare(_value, s->_value);
-        }
-        return 0;
-    }
-    
-    int Bool::compare(const Value* v) {
-        const Bool* b = dynamic_cast<const Bool*>(v);
-        if (b) {
-            return ::OL::compare(_value, b->_value);
-        }
-        return 0;
-    }
-    
-    Value* Array::filter(Value* func, Value* root, Value* temp) {
-        Array* ret = new Array;
-        ret->_value.resize(_value.size());
-        auto it = copy_if(_value.begin(), _value.end(), ret->_value.begin(),
-                          [=](Value*& v)->bool{
-                              Value* p = func->lookup(root, temp, v);
-                              return p && *p;
-                          });
-        ret->_value.resize(distance(ret->_value.begin(), it));
-        return ret;
+    Value& Value::value() const {
+        static Value nullValue;
+        return isPair() ? ((Pair*)_ptr)->_value.second : nullValue;
     }
 
-    Value* Object::filter(Value* func, Value* root, Value* temp) {
-        Object* ret = new Object;
-        for (auto i : _value) {
-            Value* p = func->lookup(root, temp, i.second);
-            if (p && *p) {
-                ret->_value[i.first] = i.second;
-            }
-        }
-        return ret;
+    Value::operator bool() const {
+        return _ptr && *_ptr;
     }
     
-    inline int compare(Value* a, Value* b, Value* call, Value* root, Value* temp) {
-        if (a && b) {
-            Negative* negative = dynamic_cast<Negative*>(call);
-            if (negative) {
-                return -compare(a, b, negative->_value, root, temp);
-            } else {
-                Value* left = call->lookup(root, temp, a);
-                Value* right = call->lookup(root, temp, b);
-                return left->compare(right);
-            }
-
-        } else {
-            return ::OL::compare(a, b);
+    Value Value::filter(const Value &func, const Value &root, const Value &temp) const {
+        return _ptr ? _ptr->filter(func, root, temp) : Value();
+    }
+    
+    void Value::sort(std::vector<Value> &array, const Value &root, const Value &temp) const {
+        if (_ptr) {
+            _ptr->sort(array, root, temp);
         }
     }
     
-    void Path::sort(std::vector<Value*>& array, Value* root, Value* temp) {
-        ::sort(array.begin(), array.end(), [=](Value* a, Value* b)->bool{
-            int ret = ::OL::compare(a, b, this, root, temp);
-            return ret < 0;
-        });
-    }
-
-    void List::sort(std::vector<Value*>& array, Value* root, Value* temp) {
-        ::sort(array.begin(), array.end(), [=](Value* a, Value* b)->bool{
-            int ret = ::OL::compare(a, b, _head, root, temp);
-            for (const auto& i : _tail) {
-                if (ret != 0) {
-                    return ret < 0;
-                } else {
-                    ret = ::OL::compare(a, b, i, root, temp);
-                }
-            }
-            return ret < 0;
-        });
+    bool Value::some(const Value &func, const Value &root, const Value &temp) const {
+        return _ptr && _ptr->some(func, root, temp);
     }
     
-    void Negative::sort(std::vector<Value*>& array, Value* root, Value* temp) {
-        ::sort(array.begin(), array.end(), [=](Value* a, Value* b)->bool{
-            int ret = ::OL::compare(a, b, _value, root, temp);
-            return ret > 0;
-        });
+    bool Value::operator <(const Value &v) const {
+        return compare(v) < 0;
     }
     
-    void Object::toArray(std::vector<Value*>& v) {
-        v.resize(_value.size());
-        transform(_value.begin(), _value.end(), v.begin(), [](const pair<string, Value*>& i)->Value*{return i.second;});
+    bool Value::operator >(const OL::Value &v) const {
+        return compare(v) > 0;
     }
     
-    bool Array::some(Value* func, Value* root, Value* temp) {
-        for (const auto& i : _value) {
-            if (func->lookup(root, temp, i)) {
-                return true;
-            }
-        }
-        return false;
+    bool Value::operator ==(const OL::Value &v) const {
+        return compare(v) == 0;
     }
     
-    bool Object::some(Value* func, Value* root, Value* temp) {
-        for (const auto& i : _value) {
-            if (func->lookup(root, temp, i.second)) {
-                return true;
-            }
-        }
-        return false;
+    double operator +(const Value& a, const Value& b) {
+        return a.toNumber() + b.toNumber();
+    }
+    
+    double operator +(double a, const Value& b) {
+        return a + b.toNumber();
+    }
+    
+    double operator +(const Value& a, double b) {
+        return a.toNumber() + b;
     }
 
-    Array::~Array() {
-        for (auto& i : _value) {
-            i->release();
-        }
+    double operator *(const Value& a, const Value& b) {
+        return a.toNumber() * b.toNumber();
     }
     
-    Object::~Object() {
-        for (auto& i : _value) {
-            i.second->release();
-        }
+    double operator *(double a, const Value& b) {
+        return a * b.toNumber();
     }
     
-    Path::~Path() {
-        for (auto& i : _keys) {
-            i->release();
-        }
+    double operator *(const Value& a, double b) {
+        return a.toNumber() * b;
+    }
+
+    double operator -(const Value& a, const Value& b) {
+        return a.toNumber() - b.toNumber();
     }
     
-    List::~List() {
-        _head->release();
-        for (auto& i : _tail) {
-            i->release();
-        }
+    double operator /(const Value& a, const Value& b) {
+        return a.toNumber() / b.toNumber();
     }
-    
+   
 }

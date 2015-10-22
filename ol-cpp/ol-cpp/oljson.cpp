@@ -78,7 +78,7 @@ namespace OL {
         }
     }
     
-    Value* JSON::getObject() {
+    Object* JSON::getObject() {
         Object* object = new Object;
         if (getPair(object)) {
             while (match(',')) {
@@ -89,12 +89,13 @@ namespace OL {
         }
         if (match('}')) {
             return object;
+        } else {
+            delete object;
+            return nullptr;
         }
-        object->release();
-        return nullptr;
     }
     
-    Value* JSON::getArray() {
+    Array* JSON::getArray() {
         Array* array = new Array;
         if (getElement(array)) {
             while (match(',')) {
@@ -105,9 +106,10 @@ namespace OL {
         }
         if (match(']')) {
             return array;
+        } else {
+            delete array;
+            return nullptr;
         }
-        array->release();
-        return nullptr;
     }
     
     bool JSON::getPair(Object* object) {
@@ -115,7 +117,7 @@ namespace OL {
             string key(_tokenString.begin(), _tokenString.end());
             nextToken();
             if (match(':')) {
-                Value* value = getValue();
+                ValueBase* value = getValue();
                 if (value) {
                     (*object)[key] = value;
                     return true;
@@ -126,7 +128,7 @@ namespace OL {
     }
     
     bool JSON::getElement(Array* array) {
-        Value* value = getValue();
+        Value value = getValue();
         if (value) {
             array->append(value);
             return true;
@@ -208,7 +210,7 @@ namespace OL {
         }
     }
     
-    Value* JSON::getValue() {
+    ValueBase* JSON::getValue() {
         auto token = _token;
         nextToken();
         switch (token) {
@@ -218,12 +220,12 @@ namespace OL {
                 return new Number(_tokenNumber);
             case BOOL_TOKEN:
                 return new Bool(_tokenBool);
-            case NULL_TOKEN:
-                return new Value;
             case '{':
                 return getObject();
             case '[':
                 return getArray();
+            case NULL_TOKEN:
+                return nullptr;
             default:
                 return nullptr;
         }
