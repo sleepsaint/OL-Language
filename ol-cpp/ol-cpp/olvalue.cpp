@@ -64,6 +64,10 @@ namespace OL {
         _ptr = new Array(v);
     }
 
+    Value::Value(const pair<string, Value>& v) {
+        _ptr = new Pair(v);
+    }
+    
     Value& Value::operator=(const Value &v) {
         if (_ptr != v._ptr) {
             if (_ptr) {
@@ -186,9 +190,9 @@ namespace OL {
     std::string Value::key() const {
         return isPair() ? ((Pair*)_ptr)->_value.first : "";
     }
-    Value& Value::value() const {
+    Value Value::value() const {
         static Value nullValue;
-        return isPair() ? ((Pair*)_ptr)->_value.second : nullValue;
+        return isPair() ? ((Pair*)_ptr)->_value.second : *this;
     }
 
     Value::operator bool() const {

@@ -30,6 +30,7 @@ namespace OL {
         Value(const Value& v);
         Value(const std::map<std::string, Value>& v);
         Value(const std::vector<Value>& v);
+        Value(const std::pair<std::string, Value>& v);
         ~Value();
         std::string description() const;
         Value lookup (const Value& root, const Value& temp, const Value& now) const;
@@ -83,7 +84,7 @@ namespace OL {
         ValueIter end() const;
         
         std::string key() const;
-        Value& value() const;
+        Value value() const;
 
     private:
         ValueBase* _ptr;
@@ -106,15 +107,14 @@ namespace OL {
             }
         }
         
-        Value& operator* () const {
-            static Value nullValue;
+        Value operator* () const {
             switch (_type) {
                 case ARRAY:
                     return *_array;
                 case OBJECT:
-                    return _object->second;
+                    return Value(*_object);
                 default:
-                    return nullValue;
+                    return Value();
             }
         }
         

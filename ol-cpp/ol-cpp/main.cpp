@@ -170,12 +170,12 @@ void test_json_op() {
 //    root_json["book"] = ObjectValue({{"abde","bbde"}});
 //    root_json["book"] = "abcd";
 //    cout << root_json["book"].description() << endl;
-    cout << root_json.description() << endl;
+//    cout << root_json.description() << endl;
 
     
     
     for (const auto& i : root_json) {
-        for (const auto& j : i) {
+        for (const auto& j : i.value()) {
             cout << j.description() << endl;
         }
     }
