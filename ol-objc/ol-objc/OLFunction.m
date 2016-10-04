@@ -68,7 +68,7 @@ static NSMutableDictionary<NSString*, id (^)(NSArray* params, id root, id temp, 
                                       return [NSNumber numberWithBool:YES];
                                   }
                               }
-                              return [NSNumber numberWithBool:(params.count > 0)];
+                              return [NSNumber numberWithBool:NO];
                           },
                           @"if":^(NSArray* params, id root, id temp, id now) {
                               return [params[0] boolValue] ? params[1] : params[2];
