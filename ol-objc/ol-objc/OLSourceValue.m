@@ -90,7 +90,11 @@ id autoLookup(id root, id temp, id now, id current) {
         id key = [k lookup:root temp:temp now:now];
         current = autoLookup(root, temp, now, current);
         if (key && current) {
-            current = [current valueForKey:key];
+            if ([current isKindOfClass:[NSArray class]]) {
+                current = [current objectAtIndex:[key intValue]];
+            } else {
+                current = [current valueForKey:key];
+            }
         } else {
             return nil;
         }
@@ -120,14 +124,22 @@ id autoLookup(id root, id temp, id now, id current) {
         current = autoLookup(root, temp, now, current);
         if (key && current) {
             previous = current;
-            current = [current valueForKey:key];
+            if ([current isKindOfClass:[NSArray class]]) {
+                current = [current objectAtIndex:[key intValue]];
+            } else {
+                current = [current valueForKey:key];
+            }
         } else {
             return;
         }
     }
     
     if (previous) {
-        [previous setValue:toValue forKey:key];
+        if ([previous isKindOfClass:[NSArray class]]) {
+            [previous setObject:toValue atIndex:[key intValue]];
+        } else {
+            [previous setValue:toValue forKey:key];
+        }
     }
 }
 - (void) remove:(id)root temp:(id)temp now:(id)now {

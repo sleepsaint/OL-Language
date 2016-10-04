@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 
 @interface OLFunction : NSObject
-+ (id) calc:(id)name params:(NSArray*)params root:(id)root temp:(id)temp now:(id)now;
++ (void)set:(NSString*)name function:(id (^)(NSArray* params, id root, id temp, id now))block;
++ (id)calc:(NSString*)name params:(NSArray*)params root:(id)root temp:(id)temp now:(id)now;
 @end
 
 NSComparisonResult compareNSObject(id a, id b);

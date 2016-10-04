@@ -9,14 +9,10 @@
 #import "OLFunction.h"
 #import "OLSourceValue.h"
 
-static NSDictionary* FunctionTable;
-
-@implementation OLFunction
-
-+ (id) calc:(id)name params:(NSArray*)params root:(id)root temp:(id)temp now:(id)now {
-    
-    if (!FunctionTable) {
-        FunctionTable = @{
+static NSMutableDictionary<NSString*, id (^)(NSArray* params, id root, id temp, id now)>* getFunctionTable() {
+    static NSMutableDictionary* functionTable;
+    if (!functionTable) {
+        functionTable = [NSMutableDictionary dictionaryWithDictionary:@{
                           @"+":^(NSArray* params, id root, id temp, id now) {
                               double ret = 0;
                               for (id p in params) {
@@ -64,7 +60,7 @@ static NSDictionary* FunctionTable;
                                       return [NSNumber numberWithBool:NO];
                                   }
                               }
-                              return [NSNumber numberWithBool:!params.count > 0];
+                              return [NSNumber numberWithBool:(params.count > 0)];
                           },
                           @"or":^(NSArray* params, id root, id temp, id now) {
                               for (id p in params) {
@@ -72,7 +68,7 @@ static NSDictionary* FunctionTable;
                                       return [NSNumber numberWithBool:YES];
                                   }
                               }
-                              return [NSNumber numberWithBool:!NO];
+                              return [NSNumber numberWithBool:(params.count > 0)];
                           },
                           @"if":^(NSArray* params, id root, id temp, id now) {
                               return [params[0] boolValue] ? params[1] : params[2];
@@ -103,9 +99,23 @@ static NSDictionary* FunctionTable;
                               }
                               return [NSNumber numberWithDouble:ret];
                           }
-                          };
+                          }];
     }
-    id (^function)(NSArray*,id,id,id) = FunctionTable[name];
+
+    return functionTable;
+}
+
+
+
+@implementation OLFunction
+
++ (void)set:(NSString*)name function:(id (^)(NSArray* params, id root, id temp, id now))block {
+    getFunctionTable()[name] = block;
+}
+
++ (id) calc:(NSString*)name params:(NSArray*)params root:(id)root temp:(id)temp now:(id)now {
+    
+    id (^function)(NSArray*,id,id,id) = getFunctionTable()[name];
     if (function) {
         return function(params, root, temp, now);
     }
