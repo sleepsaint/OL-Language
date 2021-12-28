@@ -4,8 +4,8 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	<title>OL test</title>
-	<script src="ol.js"></script>
-	<script>
+	<script type="module">
+		import OL from "./ol.js";
 		function test_parse() {
 			var test = [
 				"(abd,bdf)",
@@ -134,13 +134,11 @@
 			// test_change();
 			test_remove();
 		}
-
-
-
+		test2();
 	</script>
 </head>
 
-<body id="oltest" onload="test2()">
+<body id="oltest">
 	See result in console.
 </body>
 
