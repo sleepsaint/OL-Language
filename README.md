@@ -6,21 +6,20 @@ OL is designed to get value from a tree. It regards a tree as an object and use 
 
 ##Lexical
 
-+ _delimiter_ = ~|!|@|^|(|)|{|}|,|.|`
-+ _string_ = [^`_delimiter_]+
-+ _number_ = __$___string_(._string_)?
++ _delimiter_ = !|(|)|{|}|,|.
++ _string_ = [^`delimiter`]+
 
 ___NOTE___:
 
-+ _number_ is only a string start by "$" and can contain "."
-+ SPACE before a string is ignored, but in a string is not.
++ float number must be marked like `5\.3`
++ SPACE before a string is ignored (if you need it, use `\ `), but in a string is not.
 
 ##Syntax
 
-+ _value_ → ___number___|___string___|_path_|_list_|_negative_|_quote_
-+ _path_ → (__^__|__@__|__~__)[._key_]*
++ _value_ → ___string___|_path_|_list_|_negative_
 + _key_ → ___string___|_list_|_fragment_
++ _path_ → _key_[._key_]*
 + _fragment_ → __{__*path*__}__
 + _list_ → __(__*value*[,*value*]*__)__
 + _negative_ → !_value_
-+ _quote_ → `_value_
+
