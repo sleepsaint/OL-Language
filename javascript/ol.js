@@ -7,7 +7,7 @@ class Path {
 	}
 	getValue(len) {
 		let current;
-		len = len ? Math.min(len, this.keys.length) : this.keys.length;
+		len = len !== undefined ? Math.min(len, this.keys.length) : this.keys.length;
 		switch (this.root) {
 			case "^":
 				current = OL.root; break;
@@ -17,10 +17,11 @@ class Path {
 				current = OL.now; break;
 			default:
 				current = this.root.valueOf();
-				console.log(this.root, current);
 		}
 		for (let i = 0; i < len; ++i) {
-			current = current[this.keys[i].valueOf()];
+			let key = this.keys[i].valueOf();
+			if (key !== null && current instanceof Object) current = current[key];
+			else return null;
 		}
 		return current;
 	}
@@ -29,8 +30,9 @@ class Path {
 	}
 	set(value) {
 		let previous = this.getValue(this.keys.length - 1);
-		if (previous) {
-			previous[this.keys[this.keys.length - 1]] = value;
+		if (previous instanceof Object) {
+			let key = this.keys[this.keys.length - 1].valueOf();
+			if (key !== null) previous[key] = value;
 		}
 		return value;
 	}
@@ -75,13 +77,15 @@ class Parser {
 	source = ""
 	token = ""
 	tokenString = ""
-	constructor(source) {
+	errorString = ""
+	constructor(source = "") {
 		this.setSource(source);
 	}
 	setSource(source) {
 		this.source = source;
 		this.cursor = 0;
 		this.end = source.length;
+		this.errorString = "";
 		this.nextToken();
 	}
 	nextToken() {
@@ -137,7 +141,10 @@ class Parser {
 		}
 	}
 	error(message) {
-		console.error(message);
+		if (!this.errorString) {
+			this.errorString = "parse error at:[ " + this.source.substring(0, this.cursor) + " ]" + message;
+			console.error(this.errorString);
+		}
 	}
 	match(expected) {
 		if (expected == this.token) {
@@ -150,14 +157,14 @@ class Parser {
 	getString() {
 		return this.match("s") ? this.tokenString : null;
 	}
+	getRoot() {
+		let token = this.token;
+		if (this.match("^") || this.match("~") || this.match("@")) return token;
+		else return this.getList() ?? this.getFragment();
+	}
 	getPath() {
-		let root = this.token;
-		if (!(this.match("^") || this.match("~") || this.match("@"))) {
-			root = this.getList();
-		}
-		if (root === null) {
-			return null;
-		}
+		let root = this.getRoot();
+		if (root === null) return null;
 		let keys = [];
 		while (this.match(".")) {
 			let key = this.getKey();
@@ -168,7 +175,7 @@ class Parser {
 				return null;
 			}
 		}
-		return new Path(root, keys);
+		return (keys.length > 0 || !(root instanceof List)) ? new Path(root, keys) : root;
 	}
 	getFragment() {
 		if (this.match("{")) {
@@ -232,29 +239,27 @@ class Parser {
 }
 
 let OL = {
+	parser: new Parser(),
 	get(path) {
-		let a = this.cache[path];
-		return a ? a : (this.cache[path] = this.parse(path));
+		return this.parse(path).valueOf();
 	},
 	set(path, value) {
-		let a = this.cache[path];
-		if (!a) {
-			a = this.cache[path] = this.parse(path);
-		}
+		let a = this.parse(path);
 		if (a.set) a.set(value);
 		return value;
 	},
 	del(path) {
-		let a = this.cache[path];
-		if (!a) {
-			a = this.cache[path] = this.parse(path);
-		}
+		let a = this.parse(path);
 		if (a.del) a.del();
 	},
 	cache: {},
 	parse(path) {
-		let p = new Parser(path);
-		return p.getValue();
+		let a = this.cache[path];
+		if (!a) {
+			this.parser.setSource(path);
+			a = this.cache[path] = this.parser.getValue();
+		}
+		return a;
 	},
 	root: {},
 	temp: {},
@@ -310,7 +315,6 @@ let OL = {
 			return OL.get(path.valueOf());
 		},
 		some(data, condition) {
-			console.log(data);
 			let d = Object.values(data.valueOf());
 			return d.some(a => {
 				OL.now = a;
@@ -331,6 +335,9 @@ let OL = {
 			});
 		},
 		sort(data, list) {
+			if (typeof list === "string") {
+				return OL.functionMap.sort(data, OL.parse(OL.get(list)));
+			}
 			let d = Object.values(data.valueOf());
 			if (list instanceof Path || list instanceof Negative) {
 				d.sort((a, b) => OL.compare(a, b, list));

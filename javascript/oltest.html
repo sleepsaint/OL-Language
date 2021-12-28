@@ -10,8 +10,8 @@
 			var test = [
 				"(abd,bdf)",
 				"(abd, adfsdf, asdfd, ",
-				"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4) )",
-				"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, $12.4)",
+				"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, 12\\.4))",
+				"!(abd, !@.123.abd.{@.abd}.(~.abc,daf, 12\\.4)",
 				"!()",
 				"!(abd, !@.123.abd.{@.abd}.)",
 				"(abd, !@.123.abd.123.{@.abd})",
@@ -20,8 +20,9 @@
 				"(abd, !@.123.abd.123.{@.abd.{.abd})",
 				"(abd, !)"
 			]
-			for (var i in test) {
-				var a = OL.parse(test[i]);
+			for (let p of test) {
+				console.log(p);
+				var a = OL.parse(p);
 				if (a) {
 					console.log(a);
 				}
@@ -51,7 +52,7 @@
 			person: "P0001",
 			person2: "^.person.P0001",
 			wearnow: "upper",
-			personwear: "^.wear.{~.person2.wear.{~.wearnow}}",
+			personwear: "^.wear.{(get,~.person2).wear.{~.wearnow}}",
 			wearfilter1: "(>, @.price, 150)",
 			wearsorter1: "(!(=,@.name,Red Hat),!@.price))",
 			now: "^.wear",
@@ -60,17 +61,17 @@
 		var test = [
 			"^.book.0.price",
 			"^.wear.{^.person.{~.person}.wear.hat}.price",
-			"^.wear.{~.person2.wear.hat}.price",
-			"~.personwear.price",
+			"^.wear.{(get,~.person2).wear.hat}.price",
+			"(get,~.personwear).price",
 			"(-, (+, ^.wear.W0001.price, ^.wear.W0002.price), ^.wear.W0002.price)",
 			"(filter, ^.wear, (>, @.price, 150))",
-			"(filter, ^.wear, ~.wearfilter1)",
+			"(filter, ^.wear, (get,~.wearfilter1))",
 			"(or, !(>,^.wear.W0001.price,50), (>, ^.wear.W0002.price, 100) )",
 			"(sort, ^.wear, (@.price))",
 			"(sort, ^.wear, (!(=,@.name,Red Hat),@.price))",
-			"(sort, ^.wear, ~.wearsorter1)",
-			"(some, ^.wear, ~.wearfilter1)",
-			"(sort, ~.now, ~.wearsorter1)",
+			"(sort, ^.wear, \\~\\.wearsorter1)",
+			"(some, ^.wear, (get,~.wearfilter1))",
+			"(sort, (get,~.now), \\~\\.wearsorter1)",
 			"(some, (get,~.now), (>,@.price,50))",
 			"(sort, ^.wear,@.price)",
 			"(sort, ^.wear, !@.price)",
@@ -81,8 +82,8 @@
 		];
 		var change_test = {
 			"^.wear.{^.person.{~.person}.wear.hat}.price": 90,
-			"^.wear.{~.person2.wear.hat}.price": 500,
-			"~.personwear.price": 300,
+			"^.wear.{(get,~.person2).wear.hat}.price": 500,
+			"(get,~.personwear).price": 300,
 			"^.book.0.price": 100,
 			"^.book.1": { name: "book004", price: 400 },
 		};
@@ -101,10 +102,9 @@
 		function test_change() {
 			for (var i in change_test) {
 				console.log(i);
-				let p = OL.get(i);
-				console.log(p.valueOf());
+				console.log(OL.get(i));
 				OL.set(i, change_test[i]);
-				console.log(p.valueOf());
+				console.log(OL.get(i));
 			}
 		}
 		function test_remove() {
@@ -129,10 +129,10 @@
 			OL.root = root;
 			OL.temp = temp;
 			// test_parse();
-			test_lookup();
+			// test_lookup();
 			// PP(test_lookup);
 			// test_change();
-			// test_remove();
+			test_remove();
 		}
 
 

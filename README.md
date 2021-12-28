@@ -6,7 +6,7 @@ OL is designed to get value from a tree. It regards a tree as an object and use 
 
 ##Lexical
 
-+ _delimiter_ = !|(|)|{|}|,|.
++ _delimiter_ = @|!|(|)|{|}|,|.
 + _string_ = [^`delimiter`]+
 
 ___NOTE___:
@@ -18,7 +18,8 @@ ___NOTE___:
 
 + _value_ → ___string___|_path_|_list_|_negative_
 + _key_ → ___string___|_list_|_fragment_
-+ _path_ → _key_[._key_]*
++ _root_ → __^__|__~__|__@__|_list_|_fragment_
++ _path_ → _root_[._key_]*
 + _fragment_ → __{__*path*__}__
 + _list_ → __(__*value*[,*value*]*__)__
 + _negative_ → !_value_
